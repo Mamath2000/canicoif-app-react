@@ -1,0 +1,88 @@
+body {
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+  background: #fff; /* ou la couleur de fond souhaitée */
+}
+
+h1 {
+  color: #333;
+}
+
+form {
+  margin-bottom: 20px;
+  margin-top: 20px !important !important;
+}
+
+input {
+  margin-right: 10px;
+}
+
+button {
+  background-color: #28a745;
+  color: white;
+  border: none;
+  padding: 10px 15px;
+  cursor: pointer;
+}
+
+button:hover {
+  background-color: #218838;
+}
+
+ul {
+  list-style-type: none;
+  padding: 0;
+}
+
+li {
+  background: white;
+  margin: 5px 0;
+  padding: 10px;
+  border-radius: 5px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.react-calendar__month-view__weekdays {
+  display: none !important;
+}
+
+.rbc-allday-cell {
+  display: none;
+}
+
+.bandeau-btn {
+  background: #dedede;      /* gris très clair et lumineux */
+  color: #111;
+  border: 2.5px solid #666; /* bordure foncée et épaisse */
+  border-radius: 12px;
+  font-weight: 800;
+  font-size: 1.13em;
+  padding: 1em 1.5em;
+  margin-bottom: 1em;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.10);
+  transition: background 0.2s, border 0.2s, color 0.2s, box-shadow 0.2s;
+  width: 100%;
+  letter-spacing: 1px;
+}
+
+.bandeau-btn:hover, .bandeau-btn:focus {
+  background: #444;         /* gris foncé au survol */
+  border: 2.5px solid #222;
+  color: #fff;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.18);
+}
+
+.animaux-recents-titre {
+  color: #888888;
+  border-radius: 10px;
+  font-weight: 700;
+  font-size: 1.08em;
+  padding: 0.5em 1em;
+  margin-bottom: 8px;
+  letter-spacing: 1px;
+  text-align: center;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}

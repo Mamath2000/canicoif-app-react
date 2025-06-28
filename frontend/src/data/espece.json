@@ -1,0 +1,6 @@
+[
+  { "value": "chien", "label": "Chien" },
+  { "value": "chat", "label": "Chat" },
+  { "value": "nac", "label": "NAC" },
+  { "value": "autre", "label": "Autre" }
+]

@@ -1,0 +1,87 @@
+html, body, #root {
+  height: 99%;
+  margin: 10px;
+  padding: 0;
+  overflow: hidden; /* Ajoute cette ligne */
+}
+
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background-color: #f0f0f0;
+}
+
+h1 {
+  color: #333;
+}
+
+ul {
+  list-style-type: none;
+  padding: 0;
+}
+
+button {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  padding: 10px 15px;
+  cursor: pointer;
+  border-radius: 5px;
+}
+
+button:hover {
+  background-color: #0056b3;
+}
+
+/* Améliore la lisibilité du mini calendrier */
+.react-calendar {
+  background: transparent;
+  border: none;
+  font-size: 1.1rem;
+}
+
+.react-calendar__month-view__days__day {
+  color: #222 !important;         /* Couleur du texte des jours */
+  background: transparent !important;
+}
+
+.react-calendar__tile--active {
+  background: #007bff !important;
+  color: #fff !important;
+  border-radius: 8px;
+}
+
+.react-calendar__tile:enabled:hover {
+  background: #e6f0fa !important;
+  color: #007bff !important;
+  border-radius: 8px;
+}
+
+.react-calendar__navigation {
+  margin-bottom: 0.5em;
+}
+
+/* Corrige le titre du mois dans le mini calendrier */
+.react-calendar__navigation__label {
+  color: #222 !important;      /* Texte foncé */
+  background: transparent !important;
+  font-weight: bold;
+  font-size: 1.1em;
+}
+
+.react-calendar__tile--now {
+  background: #ffe082 !important;
+  color: #222 !important;
+  border-radius: 8px;
+}
+
+.react-calendar__navigation button {
+  color: #222 !important;
+  background: transparent !important;
+}
+
+.selected-week {
+  background: #b3d4fc !important;
+  color: #222 !important;
+  border-radius: 8px;
+}

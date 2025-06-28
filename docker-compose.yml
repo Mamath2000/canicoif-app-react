@@ -1,0 +1,22 @@
+services:
+  app:
+    container_name: app
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      - MONGO_URI=mongodb://mongo:27017/canicoif
+      - ANIMAUX_LIMIT=10
+    depends_on:
+      - mongo
+    # volumes:
+    #   - ./backend:/app/backend
+    #   - ./frontend:/app/frontend
+
+  mongo:
+    container_name: mongo
+    image: mongo
+    ports:
+      - "27017:27017"
+    volumes:
+      - ./mongo-data:/data/db
