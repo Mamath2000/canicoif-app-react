@@ -13,7 +13,7 @@ echo "🔧 Mode sélectionné : $MODE"
 
 
 #ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
-ROOT_DIR="/root/cani-app"
+ROOT_DIR="/root/canicoif-app-react"
 
 # --- INSTALLATION DES DÉPENDANCES ---
 echo "📦 Installation des dépendances backend..."
