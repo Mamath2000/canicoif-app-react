@@ -109,7 +109,7 @@ function App() {
           padding: "4px 12px",
           letterSpacing: 1.2,
           zIndex: 2
-        }}><span style={{ fontWeight: 400, fontSize: 13, marginLeft: 8, opacity: 0.7 }}>v{version}{gitRef && ` #${gitRef}`}
+        }}><span style={{ fontWeight: 400, fontSize: 13, marginLeft: 8, opacity: 0.2 }}>v{version}{gitRef && ` #${gitRef}`}
         </span>
         </div>
       </div>
