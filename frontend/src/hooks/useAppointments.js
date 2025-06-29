@@ -6,9 +6,16 @@ export function useAppointments() {
   const [appointments, setAppointments] = useState([]);
 
   const fetchAppointments = async (selectedDate) => {
-    // Calcule le lundi et le lundi suivant (exclu)
+    // Correction : si dimanche, on prend la semaine précédente (lundi précédent)
     const day = dayjs(selectedDate);
-    const startOfWeek = day.startOf('week').add(1, 'day'); // Lundi
+    let startOfWeek;
+    if (day.day() === 0) { // 0 = dimanche
+      // On recule de 6 jours pour tomber sur le lundi précédent
+      startOfWeek = day.subtract(6, 'day');
+    } else {
+      // startOf('week') donne dimanche, donc on ajoute 1 jour pour lundi
+      startOfWeek = day.startOf('week').add(1, 'day');
+    }
     const endOfWeek = startOfWeek.add(7, 'day'); // Lundi suivant
 
     const res = await axios.get('/api/appointments', {

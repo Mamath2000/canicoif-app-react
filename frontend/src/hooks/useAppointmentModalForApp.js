@@ -36,8 +36,6 @@ export function useAppointmentModalForApp(fetchRecentsAnimaux, selectedDate) {
   // Handler pour supprimer un rendez-vous
   const handleDeleteAppointment = async (data) => {
     await deleteAppointment(data, selectedDate);
-    // Rafraîchir les rendez-vous après suppression
-    await fetchAppointments(selectedDate);
     closeModal();
   };
 
