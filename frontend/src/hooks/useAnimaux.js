@@ -1,5 +1,5 @@
 import { useState } from "react";
-import axios from "axios";
+import axios from "../utils/axios";
 
 export function useAnimaux() {
   const [animaux, setAnimaux] = useState([]);

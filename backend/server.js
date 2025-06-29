@@ -13,13 +13,22 @@ app.use(express.json());
 // Connexion à la base Mongo
 mongoose.connect(process.env.MONGO_URI);
 
-// Routes API
-app.use('/api/clients', require('./routes/clients'));
-app.use('/api/appointments', require('./routes/appointments'));
-app.use('/api/animaux', require('./routes/animaux'));
+// Auth middleware JWT (protège toutes les routes sauf /api/utils/login et /api/utils/test-banner)
+const loginRouter = require('./routes/login');
+const authenticateJWT = loginRouter.authenticateJWT;
 
-// Route utilitaire pour exposer la variable TEST_BANNER
-app.use('/api/utils', require('./routes/utils'));
+
+
+
+// Routes API protégées par JWT
+app.use('/api/banner', authenticateJWT, require('./routes/dev-banner'));
+app.use('/api/clients', authenticateJWT, require('./routes/clients'));
+app.use('/api/appointments', authenticateJWT, require('./routes/appointments'));
+app.use('/api/animaux', authenticateJWT, require('./routes/animaux'));
+app.use('/api/login', require('./routes/login'));
+
+
+
 
 // 📁 Serve fichiers statiques frontend (Vite)
 const frontendPath = path.join(__dirname, '../frontend/dist');

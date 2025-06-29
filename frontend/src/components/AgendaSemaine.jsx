@@ -4,7 +4,7 @@ import "react-big-calendar/lib/addons/dragAndDrop/styles.css";
 import "react-big-calendar/lib/css/react-big-calendar.css";
 import { fr } from "date-fns/locale";
 import { parse, startOfWeek, getDay, format } from "date-fns";
-import axios from "axios";
+import axios from "../utils/axios";
 import { getComportementColors } from "../utils/comportementColors";
 import { holidays } from "../utils/holidays"; // <-- import des jours fériés
 

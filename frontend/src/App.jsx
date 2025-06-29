@@ -12,12 +12,17 @@ import { getWeekDates } from "./utils/dateUtils";
 import { useAnimalModalForApp } from "./hooks/useAnimalModalForApp";
 import { useAppointmentModalForApp } from "./hooks/useAppointmentModalForApp";
 import { isTestBannerEnabled, getAppVersion } from "./utils/env";
+import LoginModal from "./components/LoginModal";
 
 
 function App() {
   // Version affichée dans le bandeau
   const { version, gitRef } = getAppVersion();
   const [showTestBanner, setShowTestBanner] = useState(false);
+
+  // Authentification
+  const [token, setToken] = useState(() => localStorage.getItem('jwt_token') || "");
+  const [username, setUsername] = useState(() => localStorage.getItem('jwt_user') || "");
 
   // Affichage asynchrone de la bannière de test (optionnel)
   useEffect(() => {
@@ -65,22 +70,53 @@ function App() {
 
   // --- Récupération des données ---
   useEffect(() => {
-    fetchRecentsAnimaux();
-  }, []);
+    if (token) fetchRecentsAnimaux();
+  }, [token]);
 
   useEffect(() => {
-    if (selectedDate) {
+    if (token && selectedDate) {
       const weekDates = getWeekDates(selectedDate);
       const monday = new Date(weekDates[0]);
       fetchAppointments(monday);
     }
-  }, [selectedDate]);
+  }, [selectedDate, token]);
 
   const handleMiniCalendarChange = (date) => {
     if (!selectedDate || date.getTime() !== selectedDate.getTime()) {
       setSelectedDate(date);
     }
   };
+
+  // --- Gestion login/logout ---
+  const handleLogin = (jwt, user) => {
+    setToken(jwt);
+    setUsername(user);
+    localStorage.setItem('jwt_token', jwt);
+    localStorage.setItem('jwt_user', user);
+  };
+  const handleLogout = () => {
+    setToken("");
+    setUsername("");
+    localStorage.removeItem('jwt_token');
+    localStorage.removeItem('jwt_user');
+    window.location.reload();
+  };
+
+  // --- Intercepteur fetch pour ajouter le token JWT ---
+  window._fetch = window._fetch || window.fetch;
+  window.fetch = function(url, options = {}) {
+    const jwt = localStorage.getItem('jwt_token');
+    if (jwt && url.startsWith('/api/')) {
+      options.headers = options.headers || {};
+      options.headers['Authorization'] = 'Bearer ' + jwt;
+    }
+    return window._fetch(url, options);
+  };
+
+  // --- Render principal ---
+  if (!token) {
+    return <LoginModal open={true} onLogin={handleLogin} />;
+  }
 
   // --- Render principal ---
   return (
@@ -102,15 +138,29 @@ function App() {
           top: 8,
           right: 24,
           color: "#fff",
-          fontWeight: 200,
-          fontSize: 8,
-          xbackground: "rgba(0,0,0,0.25)",
+          fontWeight: 600,
+          fontSize: 15,
+          background: "rgba(0,0,0,0.25)",
           borderRadius: 8,
           padding: "4px 12px",
           letterSpacing: 1.2,
-          zIndex: 2
-        }}><span style={{ fontWeight: 400, fontSize: 13, marginLeft: 8, opacity: 0.2 }}>v{version}{gitRef && ` #${gitRef}`}
-        </span>
+          zIndex: 2,
+          display: "flex",
+          alignItems: "center",
+          gap: 10
+        }}>
+          v{version}
+          {gitRef && (
+            <span style={{ fontWeight: 400, fontSize: 13, marginLeft: 8, opacity: 0.7 }}>#{gitRef}</span>
+          )}
+          {username && (
+            <span style={{ fontWeight: 400, fontSize: 13, marginLeft: 16, opacity: 0.8 }}>
+              {username}
+              <span style={{ cursor: 'pointer', marginLeft: 10, color: '#fff', fontWeight: 700 }} title="Déconnexion" onClick={handleLogout}>
+                ⎋
+              </span>
+            </span>
+          )}
         </div>
       </div>
 
