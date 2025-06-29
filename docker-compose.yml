@@ -1,7 +1,10 @@
 services:
   app:
     container_name: app
-    build: .
+    build:
+      context: .
+      args:
+        - VITE_GIT_REF
     restart: always
     ports:
       - "8000:8000"
@@ -9,6 +12,7 @@ services:
       - MONGO_URI=mongodb://mongo:27017/canicoif
       - ANIMAUX_LIMIT=18
       - CLIENTS_LIMIT=18
+    # VITE_GIT_REF sera injecté dynamiquement au build
     depends_on:
       - mongo
     healthcheck:

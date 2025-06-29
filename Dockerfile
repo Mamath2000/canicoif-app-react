@@ -10,6 +10,8 @@ RUN cd backend && npm install
 COPY backend ./backend/
 
 # --- 3. Copie & build du frontend ---
+ARG VITE_GIT_REF
+ENV VITE_GIT_REF=$VITE_GIT_REF
 COPY frontend ./frontend/
 RUN cd frontend && npm install && npm run build
 
