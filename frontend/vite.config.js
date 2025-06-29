@@ -11,10 +11,12 @@ export default defineConfig(({ mode }) => {
   const pkg = require('./package.json');
   const version = pkg.version;
 
-  // Récupère le hash court du commit git
-  let gitRef = '';
+  // Récupère le hash court du commit git, priorité à la variable d'env (utile en CI/CD ou build sans .git)
+  let gitRef = process.env.VITE_GIT_REF || '';
   try {
-    gitRef = execSync('git rev-parse --short HEAD').toString().trim();
+    if (!gitRef) {
+      gitRef = execSync('git rev-parse --short HEAD').toString().trim();
+    }
   } catch (e) {
     gitRef = 'dev';
   }
