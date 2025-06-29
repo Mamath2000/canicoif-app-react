@@ -18,6 +18,9 @@ app.use('/api/clients', require('./routes/clients'));
 app.use('/api/appointments', require('./routes/appointments'));
 app.use('/api/animaux', require('./routes/animaux'));
 
+// Route utilitaire pour exposer la variable TEST_BANNER
+app.use('/api/utils', require('./routes/utils'));
+
 // 📁 Serve fichiers statiques frontend (Vite)
 const frontendPath = path.join(__dirname, '../frontend/dist');
 app.use(express.static(frontendPath));

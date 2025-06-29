@@ -11,8 +11,21 @@ import AnimalModal from './components/AnimalModal';
 import { getWeekDates } from "./utils/dateUtils";
 import { useAnimalModalForApp } from "./hooks/useAnimalModalForApp";
 import { useAppointmentModalForApp } from "./hooks/useAppointmentModalForApp";
+import { isTestBannerEnabled, getAppVersion } from "./utils/env";
+
 
 function App() {
+  // Version affichée dans le bandeau
+  const { version, gitRef } = getAppVersion();
+  const [showTestBanner, setShowTestBanner] = useState(false);
+
+  // Affichage asynchrone de la bannière de test (optionnel)
+  useEffect(() => {
+    (async () => {
+      const enabled = await isTestBannerEnabled();
+      setShowTestBanner(enabled);
+    })();
+  }, []);
 
   // --- États principaux ---
   const [selectedDate, setSelectedDate] = useState(new Date());
@@ -72,7 +85,7 @@ function App() {
   // --- Render principal ---
   return (
     <>
-      <div style={{ padding: 0, background: "#222", width: "100%", marginBottom: "12px" }}>
+      <div style={{ position: "relative", padding: 0, background: "#222", width: "100%", marginBottom: "12px", minHeight: 56 }}>
         <img
           src="/bandeau_lx.png"
           alt="Bandeau Canicoif"
@@ -83,6 +96,22 @@ function App() {
             border: "none"
           }}
         />
+        {/* Version en haut à droite */}
+        <div style={{
+          position: "absolute",
+          top: 8,
+          right: 24,
+          color: "#fff",
+          fontWeight: 200,
+          fontSize: 8,
+          xbackground: "rgba(0,0,0,0.25)",
+          borderRadius: 8,
+          padding: "4px 12px",
+          letterSpacing: 1.2,
+          zIndex: 2
+        }}><span style={{ fontWeight: 400, fontSize: 13, marginLeft: 8, opacity: 0.7 }}>v{version}{gitRef && ` #${gitRef}`}
+        </span>
+        </div>
       </div>
 
       <div style={{ display: "flex", height: "calc(100vh - 4rem)" }}>
@@ -98,6 +127,25 @@ function App() {
           alignItems: "center",
           paddingTop: "2rem"
         }}>
+          {/* Label version de test si activé */}
+          {showTestBanner && (
+            <div style={{
+              width: "95%",
+              marginBottom: "1rem",
+              background: "#ffe7a0",
+              color: "#bfa100",
+              borderRadius: 8,
+              fontWeight: 700,
+              fontSize: 16,
+              textAlign: "center",
+              padding: "8px 0",
+              boxShadow: "0 2px 8px rgba(0,0,0,0.07)",
+              border: "1px solid #ffe7a0",
+              letterSpacing: 1
+            }}>
+              VERSION DE TEST
+            </div>
+          )}
           {/* Mini calendrier en premier */}
           <div
             style={{
