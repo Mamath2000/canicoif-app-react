@@ -28,9 +28,10 @@ import FormControlLabel from '@mui/material/FormControlLabel';
 import { getComportementColors } from "../utils/comportementColors";
 import { useAnimalForAnimalSearch } from "../hooks/useAnimalForAnimalSearch";
 import { useClientForSearch } from "../hooks/useClientForSearch"; 
+import ArchiveIcon from '@mui/icons-material/Archive';
 
 export default function AnimalSearchModal({ open, onClose, onAnimalSelected, selectionMode }) {
-  const [filters, setFilters] = useState({ nom: "", espece: "", race: "", exclureDecedes: true });
+  const [filters, setFilters] = useState({ nom: "", espece: "", race: "", exclureDecedes: true, exclureClientsArchives: true });
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(false);
 
@@ -47,6 +48,7 @@ export default function AnimalSearchModal({ open, onClose, onAnimalSelected, sel
       if (filters.espece) params.espece = filters.espece;
       if (filters.race) params.race = filters.race;
       if (filters.exclureDecedes) params.exclureDecedes = true;
+      if (filters.exclureClientsArchives) params.exclureClientsArchives = true;
       const res = await axios.get("/api/animaux", { params });
       setResults(res.data);
     } catch {
@@ -57,6 +59,10 @@ export default function AnimalSearchModal({ open, onClose, onAnimalSelected, sel
 
   const handleChange = (e) => {
     setFilters(f => ({ ...f, [e.target.name]: e.target.value }));
+  };
+
+  const handleCheckboxChange = (e) => {
+    setFilters(f => ({ ...f, [e.target.name]: e.target.checked }));
   };
 
   const {
@@ -124,12 +130,24 @@ export default function AnimalSearchModal({ open, onClose, onAnimalSelected, sel
               control={
                 <Checkbox
                   checked={filters.exclureDecedes}
-                  onChange={e => setFilters(f => ({ ...f, exclureDecedes: e.target.checked }))}
+                  onChange={handleCheckboxChange}
                   name="exclureDecedes"
                   color="primary"
                 />
               }
               label="Exclure les animaux décédés"
+              sx={{ marginLeft: 1, marginRight: 0 }}
+            />
+            <FormControlLabel
+              control={
+                <Checkbox
+                  checked={filters.exclureClientsArchives}
+                  onChange={handleCheckboxChange}
+                  name="exclureClientsArchives"
+                  color="primary"
+                />
+              }
+              label="Exclure les clients archivés"
               sx={{ marginLeft: 1, marginRight: 0 }}
             />
           </div>
@@ -193,7 +211,12 @@ export default function AnimalSearchModal({ open, onClose, onAnimalSelected, sel
                           </TableCell>
                           <TableCell>
                             {animal.client
-                              ? `${animal.client.nom} ${animal.client.prenom || ""}`
+                              ? <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                                  {animal.client.nom} {animal.client.prenom || ""}
+                                  {animal.client.archive && (
+                                    <ArchiveIcon fontSize="small" sx={{ color: "#bfa100", ml: 0.5 }} titleAccess="Archivé" />
+                                  )}
+                                </span>
                               : ""}
                           </TableCell>
                           <TableCell align="center">

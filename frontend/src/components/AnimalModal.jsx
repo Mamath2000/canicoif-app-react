@@ -7,6 +7,7 @@ import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
 import MenuItem from '@mui/material/MenuItem';
 import Box from '@mui/material/Box';
+import Pagination from '@mui/material/Pagination';
 
 import ESPECES from '../data/espece.json';
 import TAILLES from '../data/taille.json';
@@ -102,6 +103,20 @@ export default function AnimalModal({
 
   // Pour gérer l'édition locale des rendez-vous
   const [appointmentEdits, setAppointmentEdits] = useState([]);
+  const [appointmentsPage, setAppointmentsPage] = useState(1);
+  const APPOINTMENTS_PER_PAGE = 6;
+  const [appointmentsTotal, setAppointmentsTotal] = useState(animalAppointments.length);
+
+  useEffect(() => {
+    setAppointmentsPage(1);
+    setAppointmentsTotal(animalAppointments.length);
+  }, [animalAppointments, open]);
+
+  // Pagination des rendez-vous
+  const paginatedAppointments = appointmentEdits.slice(
+    (appointmentsPage - 1) * APPOINTMENTS_PER_PAGE,
+    appointmentsPage * APPOINTMENTS_PER_PAGE
+  );
 
   const handleAppointmentChange = (idx, field, value) => {
     setAppointmentEdits(appointmentEdits =>
@@ -248,37 +263,50 @@ export default function AnimalModal({
             {isEditAnimal && (
               <Box sx={{ flex: 1, pl: 2, borderLeft: "1px solid #eee", minHeight: 320, display: "flex", alignItems: "flex-start", justifyContent: "flex-start", flexDirection: "column" }}>
                 <div style={{ fontWeight: 600, fontSize: 15, marginBottom: 8 }}>Rendez-vous de l'animal</div>
-                {appointmentEdits.length === 0 ? (
+                {paginatedAppointments.length === 0 ? (
                   <span style={{ color: "#bbb" }}>Aucun rendez-vous</span>
                 ) : (
-                  appointmentEdits.map((appointment, idx) => (
-                    <Box key={appointment._id || idx} sx={{ display: "flex", alignItems: "center", gap: 1, mb: 1, width: "100%" }}>
-                      <TextField
-                        label="Date"
-                        value={appointment.start ? new Date(appointment.start).toLocaleDateString("fr-FR") : ""}
-                        size="small"
-                        InputProps={{ readOnly: true }}
-                        sx={{ width: 110 }}
-                      />
-                      <TextField
-                        label="Activité"
-                        value={appointment.comment || ""}
-                        onChange={e => handleAppointmentChange(idx, "comment", e.target.value)}
-                        size="small"
-                        fullWidth
-                        sx={{ flex: 3 }}
-                        inputProps={{ maxLength: 80 }}
-                      />
-                      <TextField
-                        label="Tarif (€)"
-                        type="number"
-                        value={appointment.tarif}
-                        onChange={e => handleAppointmentChange(idx, "tarif", e.target.value)}
-                        size="small"
-                        sx={{ width: 90 }}
-                      />
-                    </Box>
-                  ))
+                  paginatedAppointments.map((appointment, idx) => {
+                    const globalIdx = (appointmentsPage - 1) * APPOINTMENTS_PER_PAGE + idx;
+                    return (
+                      <Box key={appointment._id || globalIdx} sx={{ display: "flex", alignItems: "center", gap: 1, mb: 1, width: "100%" }}>
+                        <TextField
+                          label="Date"
+                          value={appointment.start ? new Date(appointment.start).toLocaleDateString("fr-FR") : ""}
+                          size="small"
+                          InputProps={{ readOnly: true }}
+                          sx={{ width: 110 }}
+                        />
+                        <TextField
+                          label="Activité"
+                          value={appointment.comment || ""}
+                          onChange={e => handleAppointmentChange(globalIdx, "comment", e.target.value)}
+                          size="small"
+                          fullWidth
+                          sx={{ flex: 3 }}
+                          inputProps={{ maxLength: 80 }}
+                        />
+                        <TextField
+                          label="Tarif (€)"
+                          type="number"
+                          value={appointment.tarif}
+                          onChange={e => handleAppointmentChange(globalIdx, "tarif", e.target.value)}
+                          size="small"
+                          sx={{ width: 90 }}
+                        />
+                      </Box>
+                    );
+                  })
+                )}
+                {/* Pagination */}
+                {appointmentEdits.length > APPOINTMENTS_PER_PAGE && (
+                  <Pagination
+                    count={Math.ceil(appointmentEdits.length / APPOINTMENTS_PER_PAGE)}
+                    page={appointmentsPage}
+                    onChange={(_, value) => setAppointmentsPage(value)}
+                    size="small"
+                    sx={{ mt: 1, alignSelf: "center" }}
+                  />
                 )}
               </Box>
             )}

@@ -56,8 +56,18 @@ function App() {
   }, []);
 
   useEffect(() => {
-    fetchAppointments(selectedDate);
+    if (selectedDate) {
+      const weekDates = getWeekDates(selectedDate);
+      const monday = new Date(weekDates[0]);
+      fetchAppointments(monday);
+    }
   }, [selectedDate]);
+
+  const handleMiniCalendarChange = (date) => {
+    if (!selectedDate || date.getTime() !== selectedDate.getTime()) {
+      setSelectedDate(date);
+    }
+  };
 
   // --- Render principal ---
   return (
@@ -101,7 +111,7 @@ function App() {
             }}
           >
             <Calendar
-              onChange={setSelectedDate}
+              onChange={handleMiniCalendarChange}
               value={selectedDate}
               calendarType="iso8601"
               locale="fr-FR"

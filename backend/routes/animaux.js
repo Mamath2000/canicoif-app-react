@@ -3,13 +3,13 @@ const router = express.Router();
 const Animal = require("../models/Animal");
 const Appointment = require("../models/Appointment");
 const Client = require("../models/Client"); // Ajout
-const ANIMAUX_LIMIT = parseInt(process.env.ANIMAUX_LIMIT, 10) || 10;
+const ANIMAUX_LIMIT = parseInt(process.env.ANIMAUX_LIMIT, 10) || 15;
 
 
 // Liste filtrée/paginée des animaux
 router.get("/", async (req, res) => {
   try {
-    const { nom, espece, race, exclureDecedes, clientId, recents } = req.query;
+    const { nom, espece, race, exclureDecedes, clientId, recents, exclureClientsArchives } = req.query;
     const query = {};
     if (nom) query.nom = new RegExp(nom, "i");
     if (espece) query.espece = new RegExp(espece, "i");
@@ -17,15 +17,20 @@ router.get("/", async (req, res) => {
     if (exclureDecedes === "true" || exclureDecedes === true) query.decede = false;
     if (clientId) query.clientId = clientId;
 
-    let findQuery = Animal.find(query).populate("clientId", "nom prenom");
+    let findQuery = Animal.find(query).populate("clientId", "nom prenom archive");
 
-    if (recents === "true" || recents === true) {
-      findQuery = findQuery.sort({ updatedAt: -1 }).limit(ANIMAUX_LIMIT);
-    } else {
-      findQuery = findQuery.sort({ nom: 1 }).limit(ANIMAUX_LIMIT);
+    // On ne limite pas tout de suite si on doit filtrer les clients archivés
+    let animaux = await findQuery.sort(recents === "true" || recents === true ? { updatedAt: -1 } : { nom: 1 });
+
+    // Filtrer les animaux dont le client est archivé si demandé
+    if (exclureClientsArchives === "true" || exclureClientsArchives === true) {
+      animaux = animaux.filter(a => a.clientId && a.clientId.archive !== true);
     }
 
-    const animaux = await findQuery;
+    // Appliquer la limite APRÈS le filtrage
+    if (Array.isArray(animaux) && animaux.length > ANIMAUX_LIMIT) {
+      animaux = animaux.slice(0, ANIMAUX_LIMIT);
+    }
 
     const animauxWithClient = Array.isArray(animaux)
       ? animaux
@@ -35,7 +40,6 @@ router.get("/", async (req, res) => {
           client: a.clientId
         }))
       : [];
-
 
     res.json(animauxWithClient);
   } catch (err) {
@@ -120,8 +124,25 @@ router.delete("/:animalId", async (req, res) => {
 router.get("/:animalId/appointments", async (req, res) => {
   try {
     const { animalId } = req.params;
-    const appointments = await Appointment.find({ animalId }).sort({ start: -1 }).lean();
-    res.json(appointments);
+    const page = parseInt(req.query.page, 10) || 1;
+    const limit = parseInt(req.query.limit, 10) || 6;
+    const skip = (page - 1) * limit;
+
+    const [appointments, total] = await Promise.all([
+      Appointment.find({ animalId })
+        .sort({ start: -1 })
+        .skip(skip)
+        .limit(limit)
+        .lean(),
+      Appointment.countDocuments({ animalId })
+    ]);
+
+    res.json({
+      appointments,
+      total,
+      page,
+      totalPages: Math.ceil(total / limit)
+    });
   } catch (err) {
     res.status(500).json({ message: "Erreur lors de la récupération des rendez-vous" });
   }

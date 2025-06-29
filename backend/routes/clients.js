@@ -4,7 +4,7 @@ const Client = require('../models/Client');
 const Appointment = require('../models/Appointment'); // ou le nom de ton modèle
 const Animal = require('../models/Animal'); // à ajouter en haut
 
-const CLIENTS_LIMIT = parseInt(process.env.CLIENTS_LIMIT, 10) || 10;
+const CLIENTS_LIMIT = parseInt(process.env.CLIENTS_LIMIT, 10) || 15;
 
 // Lire tous les clients
 router.get("/", async (req, res) => {
@@ -28,11 +28,13 @@ router.get("/", async (req, res) => {
     { mobile: { $regex: req.query.tel, $options: "i" } }
   ];
 
-  // Filtrage sur l'archivage
-  if (req.query.withArchive !== "true") {
-    query.archive = { $ne: true }; // On exclut les archivés par défaut
+  // Filtrage sur l'archivage (nouvelle logique : exclureArchives comme pour animaux)
+  // Si exclureArchives est true (par défaut), on exclut les archivés
+  // Si exclureArchives est false, on retourne tout
+  if (req.query.exclureArchives === undefined || req.query.exclureArchives === "true" || req.query.exclureArchives === true) {
+    query.archive = { $ne: true };
   }
-  // Si withArchive=true, on ne filtre pas sur archive
+  // Si exclureArchives est "false" ou false, on ne filtre pas
 
   try {
     const clients = await Client.find(query)

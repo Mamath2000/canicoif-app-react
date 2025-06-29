@@ -23,7 +23,8 @@ import ArchiveIcon from '@mui/icons-material/Archive';
 import { useClientForSearch } from "../hooks/useClientForSearch"; 
 
 export default function ClientSearchModal({ open, onClose }) {
-  const [filters, setFilters] = useState({ nom: "", animal: "", tel: "", withArchive: false });
+  // Par défaut, on exclut les archivés (comme dans recherche animal)
+  const [filters, setFilters] = useState({ nom: "", animal: "", tel: "", exclureArchives: true });
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(false);
   // const [editClient, setEditClient] = useState(null);
@@ -39,7 +40,8 @@ export default function ClientSearchModal({ open, onClose }) {
         if (filters.nom) params.nom = filters.nom;
         if (filters.animal) params.animal = filters.animal;
         if (filters.tel) params.tel = filters.tel;
-        const res = await axios.get("/api/clients", { params: { ...params, withAnimaux: true, withArchive: filters.withArchive } });
+        // On envoie le paramètre exclureArchives (comme exclureClientsArchives côté animal)
+        const res = await axios.get("/api/clients", { params: { ...params, withAnimaux: true, exclureArchives: filters.exclureArchives } });
       console.log(res.data); // <--- ici
 
         setResults(res.data);
@@ -53,6 +55,11 @@ export default function ClientSearchModal({ open, onClose }) {
 
   const handleChange = (e) => {
     setFilters(f => ({ ...f, [e.target.name]: e.target.value }));
+  };
+
+  // Gestion de la case à cocher pour exclure les archivés (logique inversée)
+  const handleExclureArchivesChange = (e) => {
+    setFilters(f => ({ ...f, exclureArchives: e.target.checked }));
   };
 
   // const handleEditClient = (client) => {
@@ -123,13 +130,13 @@ export default function ClientSearchModal({ open, onClose }) {
             <FormControlLabel
               control={
                 <Checkbox
-                  checked={filters.withArchive}
-                  onChange={e => setFilters(f => ({ ...f, withArchive: e.target.checked }))}
+                  checked={filters.exclureArchives}
+                  onChange={e => setFilters(f => ({ ...f, exclureArchives: e.target.checked }))}
                   color="warning"
                   size="small"
                 />
               }
-              label="Inclure archivés"
+              label="Exclure les clients archivés"
               sx={{ ml: 1 }}
             />
           </div>
