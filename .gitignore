@@ -28,6 +28,9 @@ frontend/dist/
 backend/dist/
 backend/build/
 backend/node_modules/
+
+# Utilisateurs (ne pas versionner les données sensibles)
+backend/users.json
 backend/.env
 backend/.env.*
 
