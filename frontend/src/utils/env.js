@@ -15,7 +15,6 @@ export async function isTestBannerEnabled() {
 export function getAppVersion() {
   return {
     version: import.meta.env.VITE_VERSION || 'dev',
-    gitRef: import.meta.env.VITE_GIT_REF || '',
   };
 }
 

@@ -222,7 +222,6 @@ function App() {
             color: "#fff",
             fontWeight: 600,
             fontSize: 15,
-            background: "rgba(0,0,0,0.25)",
             borderRadius: 8,
             padding: "4px 12px",
             letterSpacing: 1.2,
