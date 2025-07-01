@@ -9,9 +9,7 @@ export function useAnimalModal(refreshParents) {
   const {
     editAnimal,
     saveAnimal,
-    // animalAppointments,
     fetchAnimalById,
-    // setAnimalAppointments,
     setEditAnimal
   } = useAnimaux();
   
@@ -20,14 +18,11 @@ export function useAnimalModal(refreshParents) {
     if (animal && animal._id) {
       await fetchAnimalById(animal._id, true, true)
       setIsEditAnimal(true);
-
       setshowAnimalModal(true);
     
     } else if (animal.clientId) {
       setEditAnimal(animal);
-      // setAnimalAppointments([]);
       setIsEditAnimal(false);
-
       setshowAnimalModal(true);
     }
   };
@@ -36,7 +31,6 @@ export function useAnimalModal(refreshParents) {
   const closeModal = () => {
     setshowAnimalModal(false);
     setEditAnimal(null);
-    // setAnimalAppointments([]);
     setIsEditAnimal(false);
   };
 
@@ -51,7 +45,6 @@ export function useAnimalModal(refreshParents) {
     editAnimal,
     showAnimalModal,
     isEditAnimal,
-    // animalAppointments: animalAppointments?.length ? animalAppointments : [],
     openModal,
     closeModal,
     handleSaveAnimalModal,

@@ -13,17 +13,9 @@ export function useAppointmentModal(refreshParents) {
 
   const [showAppointmentModal, setShowAppointmentModal] = useState(false);
 
-  // // Ouvre la modale pour création ou édition
-  // const openModal = (appointmentData = null) => {
-  //   setEditAppointment(appointmentData);
-  //   // setSelectedAnimal(animal);
-  //   setShowAppointmentModal(true);
-  // };
-
   const closeModal = () => {
     setShowAppointmentModal(false);
     setEditAppointment(null);
-    // setSelectedAnimal(null);
   };
 
   // Handler pour enregistrer un rendez-vous
@@ -74,7 +66,6 @@ export function useAppointmentModal(refreshParents) {
   return {
     showAppointmentModal,
     editAppointment,
-    // openModal,
     closeModal,
     handleSaveAppointment,
     handleDeleteAppointment,

@@ -5,7 +5,6 @@ export function useAnimaux() {
 
   const [editAnimal, setEditAnimal] = useState(null);
   const [animaux, setAnimaux] = useState([]);
-  // const [animalAppointments, setAnimalAppointments] = useState([]);
 
   // Récupère la liste des animaux récents
   const fetchRecentsAnimaux = async () => {
@@ -49,20 +48,6 @@ const searchAnimaux = async (filters) => {
     await fetchRecentsAnimaux();
   };
 
-  // // Récupère les rendez-vous d'un animal
-  // const fetchAnimalAppointments = async (animalId) => {
-  //   if (!animalId) {
-  //     setAnimalAppointments([]);
-  //     return;
-  //   }
-  //   try {
-  //     const res = await axios.get(`/api/animaux/${animalId}/appointments`);
-  //     setAnimalAppointments(res.data || []);
-  //   } catch {
-  //     setAnimalAppointments([]);
-  //   }
-  // };
-
   const fetchAnimalById = async (animalId, withClient = false, withAppointments = false) => {
     if (!animalId) return null;
     try {
@@ -72,28 +57,21 @@ const searchAnimaux = async (filters) => {
       };
       const res = await axios.get(`/api/animaux/${animalId}`, { params });
       setEditAnimal(res.data);
-      // if (withAppointments) {
-      //   setAnimalAppointments(res.data.appointments || []);
-      // }
       return res.data;
     } catch (error) {
       console.error("Erreur lors de la récupération de l'animal :", error);
       setEditAnimal(null);
-      // setAnimalAppointments([]);
       return null;
     }
   };
   
   return {
     animaux,
-    // animalAppointments,
-    // setAnimalAppointments,
     editAnimal,
     setEditAnimal,
     saveAnimal,
     fetchRecentsAnimaux,
     fetchAnimalById,
-    // fetchAnimalAppointments,
     searchAnimaux,
   };
 }

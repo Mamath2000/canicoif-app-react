@@ -80,7 +80,6 @@ export default function AppointmentEditModal({
     showAnimalModal,
     editAnimal,
     isEditAnimal,
-    // animalAppointments,
     openModal: openAnimalModal,
     closeModal: closeAnimalModal,
     handleSaveAnimalModal,
@@ -131,8 +130,7 @@ export default function AppointmentEditModal({
       }));
 
     }
-    setShowAnimalSearch(false); // <-- Ajoute cette ligne ici
-
+    setShowAnimalSearch(false);
   };
 
   const handleDissociateAppointment = () => {
@@ -171,17 +169,6 @@ export default function AppointmentEditModal({
       [name]: type === "checkbox" ? checked : value
     }));
   };
-
-  // const handleUpdateAppointmentFromAnimalModal = (updatedAppointment) => {
-  //   if (updatedAppointment._id === appointment?._id) {
-  //     setCurrentAppointment(updatedAppointment);
-  //     setTitle(updatedAppointment.title || "");
-  //     setComportement(updatedAppointment.comportement || "");
-  //     setHighlight(updatedAppointment.highlight || false);
-  //     setComment(updatedAppointment.comment || "");
-  //     setTarif(updatedAppointment.tarif || "");
-  //   }
-  // };
 
   return (
     <>

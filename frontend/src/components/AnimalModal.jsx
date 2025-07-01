@@ -35,8 +35,6 @@ export default function AnimalModal({
   onSaved,
   editAnimal,
   isEditAnimal,
-  // animalAppointments = [],
-  // onUpdateAppointment
 }) {
   const [form, setForm] = useState(emptyAnimal);
   const [animalAppointments, setAnimalAppointments] = useState([]);

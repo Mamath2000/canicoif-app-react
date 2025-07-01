@@ -31,7 +31,6 @@ export function useClients() {
       res = await axios.post(`/api/clients`, clientData);
     }
     setEditClient(res.data);
-    // await fetchClientById(res.data._id);
   };
 
   const fetchClientById = async (clientId, withAnimaux = false, withAppointments = false) => {

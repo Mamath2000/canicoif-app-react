@@ -7,13 +7,11 @@ export function useClientModal(refreshParents) {
 
     const {
     editClient,
-    clients,
     setEditClient,
     saveClient,
     fetchClientById,
     } = useClients();
 
-    // const handleEditClient = async (client) => {
     const openModal = async (client = null) => {
         if (!client || !client._id) {
             setEditClient(null);
@@ -29,8 +27,6 @@ export function useClientModal(refreshParents) {
     const closeModal = () => {
         setShowClientModal(false);
         setEditClient(null);
-        // setIsEditAnimal(false);
-        // setAnimalAppointments([]);
     };
 
     const handleSaveClient = async (clientData) => {

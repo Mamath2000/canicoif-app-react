@@ -26,9 +26,6 @@ export default function ClientSearchModal({ open, onClose }) {
   // Par défaut, on exclut les archivés (comme dans recherche animal)
   const [filters, setFilters] = useState({ nom: "", animal: "", tel: "", exclureArchives: true });
   const [loading, setLoading] = useState(false);
-  // const [editClient, setEditClient] = useState(null);
-  // const [editModalOpen, setEditModalOpen] = useState(false);
-  // const [addModalOpen, setAddModalOpen] = useState(false);
 
   
 const { 
@@ -56,7 +53,6 @@ const refreshClients = async () => {
   const {
     editClient,
     showClientModal,
-    setShowClientModal,
     openModal: openClientModal,
     closeModal: closeClientModal,
     handleSaveClient

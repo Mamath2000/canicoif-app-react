@@ -7,8 +7,6 @@ import { parse, startOfWeek, getDay, format } from "date-fns";
 import { getComportementColors } from "../utils/comportementColors";
 import { holidays } from "../utils/holidays"; // <-- import des jours fériés
 
-// import Calendar from "react-calendar"; // <-- ce Calendar est maintenant unique
-
 const locales = {
   fr: fr,
 };
@@ -31,7 +29,6 @@ function AgendaSemaine({
   onEventDrop, // <-- récupère la prop
   selectedDate,
   onNavigate, // <-- ajoute cette prop
-  onEditAppointment, // <-- ajoute cette prop
 }) {
   const events = (appointments || []).map((a) => ({
     ...a,
