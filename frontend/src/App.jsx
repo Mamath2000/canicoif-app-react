@@ -21,6 +21,31 @@ import { useAppointmentModal } from "./hooks/useAppointmentModal";
 import { useAppointments } from './hooks/useAppointments';
 import { useAnimaux } from "./hooks/useAnimaux";
 
+import React from 'react';
+
+class ErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  static getDerivedStateFromError(error) {
+    return { hasError: true };
+  }
+
+  componentDidCatch(error, errorInfo) {
+    console.error("ErrorBoundary caught an error", error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return <h2>Une erreur s'est produite. Veuillez réessayer plus tard.</h2>;
+    }
+
+    return this.props.children;
+  }
+}
+
 function App() {
   // Version affichée dans le bandeau
   const { version, gitRef } = getAppVersion();
@@ -136,6 +161,22 @@ function App() {
     window.location.reload();
   };
 
+  useEffect(() => {
+    const handleLogout = () => {
+      setToken("");
+      setUsername("");
+      setRole("user");
+      setReset(false);
+      setUserId("");
+    };
+
+    window.addEventListener("logout", handleLogout);
+
+    return () => {
+      window.removeEventListener("logout", handleLogout);
+    };
+  }, []);
+
   // --- Intercepteur fetch pour ajouter le token JWT ---
   window._fetch = window._fetch || window.fetch;
   window.fetch = function (url, options = {}) {
@@ -148,164 +189,160 @@ function App() {
   };
 
   // --- Render principal ---
-
-  if (!token) {
-    return <LoginModal open={true} onLogin={handleLogin} />;
-  }
-
-  if (reset) {
-    return <PasswordResetModal open={true} userId={userId} onReset={() => setReset(false)} onLogout={handleLogout} skipTempPassword />;
-  }
-
+  let content;
   // Affichage de la page de gestion des utilisateurs pour les admins : bouton d'accès
   const [showSettings, setShowSettings] = useState(false);
   const [showStats, setShowStats] = useState(false);
 
-  // --- Render principal ---
-  return (
-    <>
-      <div style={{ position: "relative", padding: 0, background: "#222", width: "100%", marginBottom: "12px", minHeight: 56 }}>
-        <img
-          src="/bandeau_lx.png"
-          alt="Bandeau Canicoif"
-          style={{
-            width: "100%",
-            height: "auto",
-            display: "block",
-            border: "none"
-          }}
-        />
-        {/* Version en haut à droite */}
-        <div style={{
-          position: "absolute",
-          top: 8,
-          right: 24,
-          color: "#fff",
-          fontWeight: 600,
-          fontSize: 15,
-          background: "rgba(0,0,0,0.25)",
-          borderRadius: 8,
-          padding: "4px 12px",
-          letterSpacing: 1.2,
-          zIndex: 2,
-          display: "flex",
-          alignItems: "center",
-          gap: 10
-        }}>
-          v{version}
-          {gitRef && (
-            <span style={{ fontWeight: 400, fontSize: 13, marginLeft: 8, opacity: 0.7 }}>#{gitRef}</span>
-          )}
-          {username && (
-            <span style={{ fontWeight: 400, fontSize: 13, marginLeft: 16, opacity: 0.8 }}>
-              {username}
-              <span style={{ cursor: 'pointer', marginLeft: 10, color: '#fff', fontWeight: 700 }} title="Déconnexion" onClick={handleLogout}>
-                ⎋
+  if (!token) {
+    content = <LoginModal open={true} onLogin={handleLogin} />;
+  } else if (reset) {
+    content = <PasswordResetModal open={true} userId={userId} onReset={() => setReset(false)} onLogout={handleLogout} skipTempPassword />;
+  } else {
+    content = (
+      <>
+        <div style={{ position: "relative", padding: 0, background: "#222", width: "100%", marginBottom: "12px", minHeight: 56 }}>
+          <img
+            src="/bandeau_lx.png"
+            alt="Bandeau Canicoif"
+            style={{
+              width: "100%",
+              height: "auto",
+              display: "block",
+              border: "none"
+            }}
+          />
+          {/* Version en haut à droite */}
+          <div style={{
+            position: "absolute",
+            top: 8,
+            right: 24,
+            color: "#fff",
+            fontWeight: 600,
+            fontSize: 15,
+            background: "rgba(0,0,0,0.25)",
+            borderRadius: 8,
+            padding: "4px 12px",
+            letterSpacing: 1.2,
+            zIndex: 2,
+            display: "flex",
+            alignItems: "center",
+            gap: 10
+          }}>
+            v{version}
+            {gitRef && (
+              <span style={{ fontWeight: 400, fontSize: 13, marginLeft: 8, opacity: 0.7 }}>#{gitRef}</span>
+            )}
+            {username && (
+              <span style={{ fontWeight: 400, fontSize: 13, marginLeft: 16, opacity: 0.8 }}>
+                {username}
+                <span style={{ cursor: 'pointer', marginLeft: 10, color: '#fff', fontWeight: 700 }} title="Déconnexion" onClick={handleLogout}>
+                  ⎋
+                </span>
               </span>
-            </span>
-          )}
-          {/* Bouton statistiques pour tous */}
-          <Button
-            variant="contained"
-            size="small"
-            style={{ marginLeft: 16, background: '#43a047', color: '#fff', fontWeight: 600 }}
-            onClick={() => setShowStats(true)}
-          >
-            Statistiques
-          </Button>
-          {/* Bouton gestion users pour admin */}
-          {role === 'admin' && (
+            )}
+            {/* Bouton statistiques pour tous */}
             <Button
               variant="contained"
               size="small"
-              style={{ marginLeft: 16, background: '#1976d2', color: '#fff', fontWeight: 600 }}
-              onClick={() => setShowSettings(true)}
+              style={{ marginLeft: 16, background: '#43a047', color: '#fff', fontWeight: 600 }}
+              onClick={() => setShowStats(true)}
             >
-              Paramètres
+              Statistiques
             </Button>
-          )}
-        </div>
-      </div>
-
-      <StatsDialog open={showStats} onClose={() => setShowStats(false)} />
-      <SettingsDialog open={showSettings && role === 'admin'} onClose={() => setShowSettings(false)} />
-      <div style={{ display: "flex", height: "calc(100vh - 4rem)" }}>
-        {/* Colonne gauche : calendrier et boutons */}
-        <div style={{
-          flex: "0 0 20%",
-          background: "#f8f8f8",
-          borderRight: "1px solid #ddd",
-          minWidth: 180,
-          maxWidth: 320,
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          paddingTop: "2rem"
-        }}>
-          {/* Label version de test si activé */}
-          {showTestBanner && (
-            <div style={{
-              width: "95%",
-              marginBottom: "1rem",
-              background: "#ffe7a0",
-              color: "#bfa100",
-              borderRadius: 8,
-              fontWeight: 700,
-              fontSize: 16,
-              textAlign: "center",
-              padding: "8px 0",
-              boxShadow: "0 2px 8px rgba(0,0,0,0.07)",
-              border: "1px solid #ffe7a0",
-              letterSpacing: 1
-            }}>
-              VERSION DE TEST
-            </div>
-          )}
-          {/* Mini calendrier en premier */}
-          <div
-            style={{
-              width: "95%",
-              marginBottom: "1.5rem",
-              background: "#fff",
-              borderRadius: "16px",
-              boxShadow: "0 2px 12px rgba(0,0,0,0.07)",
-              padding: "1rem 0.5rem",
-              border: "none"
-            }}
-          >
-            <Calendar
-              onChange={handleMiniCalendarChange}
-              value={selectedDate}
-              calendarType="iso8601"
-              locale="fr-FR"
-              showNeighboringMonth={false}
-              minDetail="month"
-              maxDetail="month"
-              tileClassName={({ date, view }) => {
-                if (view === "month") {
-                  const weekDates = getWeekDates(selectedDate);
-                  if (weekDates.includes(new Date(date).setHours(0, 0, 0, 0))) {
-                    return "selected-week";
-                  }
-                }
-                return null;
-              }}
-            />
+            {/* Bouton gestion users pour admin */}
+            {role === 'admin' && (
+              <Button
+                variant="contained"
+                size="small"
+                style={{ marginLeft: 16, background: '#1976d2', color: '#fff', fontWeight: 600 }}
+                onClick={() => setShowSettings(true)}
+              >
+                Paramètres
+              </Button>
+            )}
           </div>
-          {/* Les boutons juste après */}
-          <div style={{ width: "95%", marginBottom: "1.5rem", display: "flex", flexDirection: "column", gap: "0.5rem" }}>
-            <Button
-              className="bandeau-btn"
-              onClick={() => setShowClientSearch(true)}
+        </div>
+
+        <StatsDialog open={showStats} onClose={() => setShowStats(false)} />
+        <SettingsDialog open={showSettings && role === 'admin'} onClose={() => setShowSettings(false)} />
+        <div style={{ display: "flex", height: "calc(100vh - 4rem)" }}>
+          {/* Colonne gauche : calendrier et boutons */}
+          <div style={{
+            flex: "0 0 20%",
+            background: "#f8f8f8",
+            borderRight: "1px solid #ddd",
+            minWidth: 180,
+            maxWidth: 320,
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            paddingTop: "2rem"
+          }}>
+            {/* Label version de test si activé */}
+            {showTestBanner && (
+              <div style={{
+                width: "95%",
+                marginBottom: "1rem",
+                background: "#ffe7a0",
+                color: "#bfa100",
+                borderRadius: 8,
+                fontWeight: 700,
+                fontSize: 16,
+                textAlign: "center",
+                padding: "8px 0",
+                boxShadow: "0 2px 8px rgba(0,0,0,0.07)",
+                border: "1px solid #ffe7a0",
+                letterSpacing: 1
+              }}>
+                VERSION DE TEST
+              </div>
+            )}
+            {/* Mini calendrier en premier */}
+            <div
+              style={{
+                width: "95%",
+                marginBottom: "1.5rem",
+                background: "#fff",
+                borderRadius: "16px",
+                boxShadow: "0 2px 12px rgba(0,0,0,0.07)",
+                padding: "1rem 0.5rem",
+                border: "none"
+              }}
             >
-              RECHERCHE CLIENT
-            </Button>
-            <Button
-              className="bandeau-btn"
-              onClick={() => setShowAnimalSearch(true)}
-            >
-              RECHERCHE ANIMAL
-            </Button>
+              <Calendar
+                onChange={handleMiniCalendarChange}
+                value={selectedDate}
+                calendarType="iso8601"
+                locale="fr-FR"
+                showNeighboringMonth={false}
+                minDetail="month"
+                maxDetail="month"
+                tileClassName={({ date, view }) => {
+                  if (view === "month") {
+                    const weekDates = getWeekDates(selectedDate);
+                    if (weekDates.includes(new Date(date).setHours(0, 0, 0, 0))) {
+                      return "selected-week";
+                    }
+                  }
+                  return null;
+                }}
+              />
+            </div>
+            {/* Les boutons juste après */}
+            <div style={{ width: "95%", marginBottom: "1.5rem", display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+              <Button
+                className="bandeau-btn"
+                onClick={() => setShowClientSearch(true)}
+              >
+                RECHERCHE CLIENT
+              </Button>
+              <Button
+                className="bandeau-btn"
+                onClick={() => setShowAnimalSearch(true)}
+              >
+                RECHERCHE ANIMAL
+              </Button>
           </div>
           {/* Liste des animaux triée par date de modification */}
           <div style={{ marginTop: "0.5rem", width: "90%" }}>
@@ -388,9 +425,12 @@ function App() {
           onClose={() => setShowAnimalSearch(false)}
           selectionMode={false}
         />
-      </div>
-    </>
-  );
+        </div>
+      </>
+    );
+  }
+
+  return <ErrorBoundary>{content}</ErrorBoundary>;
 }
 
 export default App;
