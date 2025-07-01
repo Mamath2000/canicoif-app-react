@@ -3,6 +3,7 @@ import AgendaSemaine from "./components/AgendaSemaine";
 import UserManagement from "./components/UserManagement";
 import SettingsDialog from "./components/SettingsDialog";
 import PasswordResetModal from "./components/PasswordResetModal";
+import StatsDialog from "./components/StatsDialog";
 import ClientSearchModal from "./components/ClientSearchModal";
 import AnimalSearchModal from "./components/AnimalSearchModal";
 import Calendar from "react-calendar";
@@ -158,6 +159,7 @@ function App() {
 
   // Affichage de la page de gestion des utilisateurs pour les admins : bouton d'accès
   const [showSettings, setShowSettings] = useState(false);
+  const [showStats, setShowStats] = useState(false);
 
   // --- Render principal ---
   return (
@@ -202,6 +204,15 @@ function App() {
               </span>
             </span>
           )}
+          {/* Bouton statistiques pour tous */}
+          <Button
+            variant="contained"
+            size="small"
+            style={{ marginLeft: 16, background: '#43a047', color: '#fff', fontWeight: 600 }}
+            onClick={() => setShowStats(true)}
+          >
+            Statistiques
+          </Button>
           {/* Bouton gestion users pour admin */}
           {role === 'admin' && (
             <Button
@@ -216,6 +227,7 @@ function App() {
         </div>
       </div>
 
+      <StatsDialog open={showStats} onClose={() => setShowStats(false)} />
       <SettingsDialog open={showSettings && role === 'admin'} onClose={() => setShowSettings(false)} />
       <div style={{ display: "flex", height: "calc(100vh - 4rem)" }}>
         {/* Colonne gauche : calendrier et boutons */}

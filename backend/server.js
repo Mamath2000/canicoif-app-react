@@ -23,6 +23,9 @@ app.use('/api/clients', authenticateJWT, require('./routes/clients'));
 app.use('/api/appointments', authenticateJWT, require('./routes/appointments'));
 app.use('/api/animaux', authenticateJWT, require('./routes/animaux'));
 
+
+// Statistiques (tous users connectés)
+app.use('/api/stats', authenticateJWT, require('./routes/stats'));
 // Gestion des utilisateurs (admin seulement)
 app.use('/api/users', authenticateJWT, require('./routes/users'));
 app.use('/api/login', require('./routes/login'));
