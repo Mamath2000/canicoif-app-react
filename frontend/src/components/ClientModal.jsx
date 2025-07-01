@@ -42,7 +42,8 @@ export default function ClientModal({
   open,
   onClose,
   onSaved,
-  client: clientProp
+  client: clientProp,
+  animalMode // Ajout de la prop animalMode
 }) {
 
   const [form, setForm] = useState(emptyClient);
@@ -138,11 +139,6 @@ export default function ClientModal({
     setEditAnimal(animal);
     openAnimalModal(animal);
   };
-
-  const handleAnimalSaved = async (animalData) => {
-    await handleSaveAnimalModal(animalData);
-  };
-
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -385,7 +381,13 @@ export default function ClientModal({
           {/* Boutons classiques à droite */}
           <Box>
             <Button onClick={onClose} size="small" sx={{ mr: 1 }}>Annuler</Button>
-            <Button type="submit" variant="contained" color="primary" disabled={loading} size="small">
+            <Button
+              type="submit"
+              variant="contained"
+              color="primary"
+              disabled={loading || (animalMode && animaux.length === 0 && client && client._id)}
+              size="small"
+            >
               {client && client._id ? "Enregistrer" : "Créer"}
             </Button>
           </Box>
@@ -396,7 +398,7 @@ export default function ClientModal({
       <AnimalModal
         open={showAnimalModal}
         onClose={closeAnimalModal}
-        onSaved={handleAnimalSaved}
+        onSaved={handleSaveAnimalModal}
         editAnimal={editAnimal}
         isEditAnimal={isEditAnimal}
         animalAppointments={animalAppointments}

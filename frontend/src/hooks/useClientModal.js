@@ -4,6 +4,7 @@ import { useClients } from "./useClients";
 export function useClientModal(refreshParents) {
 
     const [showClientModal, setShowClientModal] = useState(false);
+    const [animalMode, setAnimalMode] = useState(false);
 
     const {
     editClient,
@@ -12,7 +13,9 @@ export function useClientModal(refreshParents) {
     fetchClientById,
     } = useClients();
 
-    const openModal = async (client = null) => {
+    const openModal = async (client = null, addAnimalMode = false) => {
+        setAnimalMode(addAnimalMode);
+
         if (!client || !client._id) {
             setEditClient(null);
             setShowClientModal(true);
@@ -31,13 +34,14 @@ export function useClientModal(refreshParents) {
 
     const handleSaveClient = async (clientData) => {
         await saveClient(clientData);
-        refreshParents && await refreshParents();
+        refreshParents && await refreshParents(clientData);
     };
 
     return {
         editClient,
         showClientModal,
         setShowClientModal,
+        animalMode,
         openModal,
         closeModal,
         handleSaveClient,

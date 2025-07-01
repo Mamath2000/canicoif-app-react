@@ -8,7 +8,7 @@ import TextField from "@mui/material/TextField";
 import IconButton from "@mui/material/IconButton";
 import Checkbox from "@mui/material/Checkbox";
 import FormControlLabel from "@mui/material/FormControlLabel";
-import { MdPets, MdClose } from "react-icons/md";
+import { MdPets, MdClose, MdPersonAdd } from "react-icons/md";
 import AnimalSearchModal from "./AnimalSearchModal";
 import AnimalCard from "./AnimalCard";
 import ClientCard from "./ClientCard";
@@ -17,6 +17,7 @@ import AnimalModal from "./AnimalModal";
 import { useClientModal } from "../hooks/useClientModal";
 import { useAnimalModal } from "../hooks/useAnimalModal";
 import { useAnimaux } from "../hooks/useAnimaux";
+import { useClients } from "../hooks/useClients";
 
 const emptyAppointment = {
   title: "",
@@ -69,10 +70,25 @@ export default function AppointmentEditModal({
     fetchAnimalById,
   } = useAnimaux();
 
+  const {
+    fetchClientById,
+  } = useClients();
+
   const refreshSelectedAnimal = async () => {
     if (selectedAnimal && selectedAnimal._id) {
       const updated = await fetchAnimalById(selectedAnimal._id, true, false);
       setSelectedAnimal(updated);
+    }
+  };
+
+  const refreshAfterClientUpdate = async (updatedClient) => {
+    if (selectedAnimal && selectedAnimal._id) {
+      await refreshSelectedAnimal();
+    } else {
+      if (updatedClient && updatedClient._id) {
+        const client = await fetchClientById(updatedClient._id, true, false);
+        handleAnimalSelected(client?.animaux?.[0] || null);
+      }        
     }
   };
 
@@ -88,11 +104,11 @@ export default function AppointmentEditModal({
   const {
     editClient,
     showClientModal,
-    setShowClientModal,
+    animalMode,
     openModal: openClientModal,
     closeModal: closeClientModal,
     handleSaveClient,
-  } = useClientModal(refreshSelectedAnimal);
+  } = useClientModal(refreshAfterClientUpdate);
 
   useEffect(() => {
     if (appointment?.animalId) {
@@ -160,8 +176,6 @@ export default function AppointmentEditModal({
     onClose();
   };
 
-
-
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
     setForm(f => ({
@@ -205,6 +219,15 @@ export default function AppointmentEditModal({
                     />
                   </IconButton>
                 </span>
+              )}
+              {!appointment?.animalId && (
+                <IconButton
+                  aria-label="Créer un nouveau client/animal"
+                  onClick={() => openClientModal(null, true)}
+                  size="small"
+                >
+                  <MdPersonAdd size={20} style={{ color: "green" }} />
+                </IconButton>
               )}
             </div>
           </DialogTitle>
@@ -370,17 +393,14 @@ export default function AppointmentEditModal({
             onSaved={handleSaveAnimalModal}
             editAnimal={editAnimal}
             isEditAnimal={isEditAnimal}
-            // animalAppointments={editAnimal?.appointments || []}
           />)}
-
-        {editClient && (
-          <ClientModal
-            open={showClientModal}
-            onClose={closeClientModal}
-            onSaved={handleSaveClient}
-            client={editClient}
-          />
-        )}
+        <ClientModal
+          open={showClientModal}
+          onClose={closeClientModal}
+          onSaved={handleSaveClient}
+          client={editClient}
+          animalMode={animalMode}
+        />
       </Dialog>
     </>
   );
