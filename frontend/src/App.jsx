@@ -13,7 +13,7 @@ import Button from '@mui/material/Button';
 import AppointmentEditModal from './components/AppointmentEditModal';
 import AnimalModal from './components/AnimalModal';
 import { getWeekDates } from "./utils/dateUtils";
-import { isTestBannerEnabled, getAppVersion } from "./utils/env";
+import { isTestBannerEnabled, getAppVersion, isStatsButtonEnabled } from "./utils/env";
 import LoginModal from "./components/LoginModal";
 
 import { useAnimalModal } from "./hooks/useAnimalModal";
@@ -194,6 +194,8 @@ function App() {
   const [showSettings, setShowSettings] = useState(false);
   const [showStats, setShowStats] = useState(false);
 
+  const showStatsButton = isStatsButtonEnabled();
+
   if (!token) {
     content = <LoginModal open={true} onLogin={handleLogin} />;
   } else if (reset) {
@@ -242,14 +244,16 @@ function App() {
               </span>
             )}
             {/* Bouton statistiques pour tous */}
-            <Button
-              variant="contained"
-              size="small"
-              style={{ marginLeft: 16, background: '#43a047', color: '#fff', fontWeight: 600 }}
-              onClick={() => setShowStats(true)}
-            >
-              Statistiques
-            </Button>
+            {showStatsButton && (
+              <Button
+                variant="contained"
+                size="small"
+                style={{ marginLeft: 16, background: '#43a047', color: '#fff', fontWeight: 600 }}
+                onClick={() => setShowStats(true)}
+              >
+                Statistiques
+              </Button>
+            )}
             {/* Bouton gestion users pour admin */}
             {role === 'admin' && (
               <Button

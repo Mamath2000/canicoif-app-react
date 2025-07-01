@@ -18,3 +18,8 @@ export function getAppVersion() {
     gitRef: import.meta.env.VITE_GIT_REF || '',
   };
 }
+
+// Vérifie si le bouton statistiques doit être affiché
+export function isStatsButtonEnabled() {
+  return import.meta.env.VITE_SHOW_STATS_BUTTON === 'true';
+}
