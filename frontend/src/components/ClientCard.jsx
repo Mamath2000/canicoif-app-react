@@ -4,7 +4,12 @@ import Button from '@mui/material/Button';
 import { FaUser } from "react-icons/fa";
 import EditIcon from '@mui/icons-material/Edit';
 
-export default function ClientCard({ client, onEdit, style }) {
+export default function ClientCard({ 
+  client, 
+  onEdit, 
+  style 
+}) {
+  
   if (!client) return null;
 
   return (

@@ -4,11 +4,8 @@ import "react-big-calendar/lib/addons/dragAndDrop/styles.css";
 import "react-big-calendar/lib/css/react-big-calendar.css";
 import { fr } from "date-fns/locale";
 import { parse, startOfWeek, getDay, format } from "date-fns";
-import axios from "axios";
 import { getComportementColors } from "../utils/comportementColors";
 import { holidays } from "../utils/holidays"; // <-- import des jours fériés
-
-// import Calendar from "react-calendar"; // <-- ce Calendar est maintenant unique
 
 const locales = {
   fr: fr,
@@ -32,12 +29,7 @@ function AgendaSemaine({
   onEventDrop, // <-- récupère la prop
   selectedDate,
   onNavigate, // <-- ajoute cette prop
-  onEditAppointment, // <-- ajoute cette prop
 }) {
-  // console.log("appointments reçus :", appointments);
-  // console.log("onSelectEvent :", onSelectEvent);
-  // console.log("onCreateSlot :", onCreateSlot);
-
   const events = (appointments || []).map((a) => ({
     ...a,
     id: a.id || a._id,
@@ -108,21 +100,15 @@ function App() {
   );
 }
 
-async function deleteAppointment(appointment) {
-  await axios.delete(
-    `/api/appointments/${appointment.id}`
-  );
-}
-
 const eventPropGetter = (event) => {
   // 1. Fond selon le type d'event
   let background;
   if (event.highlight) {
-    background = "linear-gradient(90deg, #ede7f6 0%, #b39ddb 100%)";
+    background = "linear-gradient(90deg, #ede7f6 0%,rgb(254, 41, 41) 100%)";
   } else if (!event.animalId && !event.animal) {
-    background = "linear-gradient(90deg, #f9f9f9 0%, #eeeeee 100%)";
+    background = "linear-gradient(90deg, #f9f9f9 0%,rgb(95, 96, 128) 100%)";
   } else {
-    background = "linear-gradient(90deg, #e3f2fd 0%, #bbdefb 100%)";
+    background = "linear-gradient(90deg, #e3f2fd 0%,rgb(20, 102, 170) 100%)";
   }
 
   // 2. Bordure gauche selon comportement
@@ -139,7 +125,7 @@ const eventPropGetter = (event) => {
   return {
     style: {
       background,
-      color: event.highlight ? "#4527a0" : "#0d47a1",
+      color: "rgb(8, 38, 63)",
       border: "1px solid #bbdefb",
       borderLeft: `6px solid ${borderColor}`,
       fontWeight: event.highlight ? 700 : 500,

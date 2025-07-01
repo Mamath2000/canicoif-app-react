@@ -2,7 +2,7 @@
 // Version asynchrone qui interroge le backend pour savoir si la bannière de test doit s'afficher
 export async function isTestBannerEnabled() {
   try {
-    const res = await fetch('/api/utils/test-banner');
+    const res = await fetch('/api/banner');
     if (!res.ok) return false;
     const data = await res.json();
     return !!data.testBanner;

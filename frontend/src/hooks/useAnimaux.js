@@ -1,9 +1,10 @@
 import { useState } from "react";
-import axios from "axios";
+import axios from "../utils/axios";
 
 export function useAnimaux() {
+
+  const [editAnimal, setEditAnimal] = useState(null);
   const [animaux, setAnimaux] = useState([]);
-  const [animalAppointments, setAnimalAppointments] = useState([]);
 
   // Récupère la liste des animaux récents
   const fetchRecentsAnimaux = async () => {
@@ -17,6 +18,26 @@ export function useAnimaux() {
     setAnimaux(animauxArray);
   };
 
+const searchAnimaux = async (filters) => {
+    try {
+      const params = {};
+      if (filters.nom) params.nom = filters.nom;
+      if (filters.espece) params.espece = filters.espece;
+      if (filters.race) params.race = filters.race;
+      if (filters.exclureDecedes) params.exclureDecedes = true;
+      if (filters.exclureClientsArchives) params.exclureClientsArchives = true;
+      const res = await axios.get('/api/animaux', { params }); 
+      const animauxArray = Array.isArray(res.data)
+      ? res.data
+      : Array.isArray(res.data?.animaux)
+        ? res.data.animaux
+        : [];
+      setAnimaux(animauxArray);
+    } catch {
+      setAnimaux([]);
+    }
+    };
+
   // Ajoute ou modifie un animal
   const saveAnimal = async (animalData) => {
     if (animalData._id) {
@@ -27,28 +48,30 @@ export function useAnimaux() {
     await fetchRecentsAnimaux();
   };
 
-  // Récupère les rendez-vous d'un animal
-  const fetchAnimalAppointments = async (animalId) => {
-    if (!animalId) {
-      setAnimalAppointments([]);
-      return;
-    }
+  const fetchAnimalById = async (animalId, withClient = false, withAppointments = false) => {
+    if (!animalId) return null;
     try {
-      const res = await axios.get(`/api/animaux/${animalId}/appointments`);
-      setAnimalAppointments(res.data || []);
-    } catch {
-      setAnimalAppointments([]);
+      const params = {
+        withClient,
+        withAppointments,
+      };
+      const res = await axios.get(`/api/animaux/${animalId}`, { params });
+      setEditAnimal(res.data);
+      return res.data;
+    } catch (error) {
+      console.error("Erreur lors de la récupération de l'animal :", error);
+      setEditAnimal(null);
+      return null;
     }
   };
-
-
   
   return {
     animaux,
-    fetchRecentsAnimaux,
+    editAnimal,
+    setEditAnimal,
     saveAnimal,
-    animalAppointments,
-    setAnimalAppointments,
-    fetchAnimalAppointments,
+    fetchRecentsAnimaux,
+    fetchAnimalById,
+    searchAnimaux,
   };
 }

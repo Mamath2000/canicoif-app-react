@@ -14,96 +14,160 @@ import AnimalCard from "./AnimalCard";
 import ClientCard from "./ClientCard";
 import ClientModal from "./ClientModal";
 import AnimalModal from "./AnimalModal";
-import { useAnimalForAppointment } from "../hooks/useAnimalForAppointment";
-import { useClientForAppointment } from "../hooks/useClientForAppointment";
+import { useClientModal } from "../hooks/useClientModal";
+import { useAnimalModal } from "../hooks/useAnimalModal";
+import { useAnimaux } from "../hooks/useAnimaux";
+
+const emptyAppointment = {
+  title: "",
+  comportement: "",
+  highlight: "",
+  comment: "",
+  tarif: ""
+}
 
 export default function AppointmentEditModal({
   open,
   onClose,
-  onSave,
+  onSaved,
   start,
   end,
-  initial,
+  appointmentProp,
   onDelete
 }) {
   // Champs contrôlés du formulaire
-  const [title, setTitle] = useState(initial?.title || "");
-  const [comportement, setComportement] = useState(initial?.comportement || "");
-  const [highlight, setHighlight] = useState(initial?.highlight || false);
-  const [comment, setComment] = useState(initial?.comment || "");
-  const [tarif, setTarif] = useState(initial?.tarif || "");
-  
+  const [form, setForm] = useState(emptyAppointment);
+  const [appointment, setAppointment] = useState(appointmentProp);
+  const [selectedAnimal, setSelectedAnimal] = useState(null);
+
   const [showAnimalSearch, setShowAnimalSearch] = useState(false);
-  const [currentAppointment, setCurrentAppointment] = useState(initial);
 
-  // Hooks animaux et clients
+  // Remplit le formulaire si un appointment est passé en prop
+  useEffect(() => {
+    if (appointmentProp) {
+      setSelectedAnimal(null);
+      setForm({
+        ...emptyAppointment,
+        _id: appointmentProp._id || "",
+        title: appointmentProp.title || "",
+        comportement: appointmentProp.comportement || "",
+        highlight: appointmentProp.highlight || "",
+        comment: appointmentProp.comment || "",
+        tarif: appointmentProp.tarif || "",
+        start: appointmentProp.start || start,
+        end: appointmentProp.end || end,
+        animalId: appointmentProp.animalId || null,
+      });
+      setAppointment(appointmentProp);
+    } else {
+      setForm(emptyAppointment);
+      setAppointment(null);
+    }
+  }, [appointmentProp, open]);
+
   const {
-    selectedAnimal,
-    setSelectedAnimal,
-    animalAppointments,
+    fetchAnimalById,
+  } = useAnimaux();
+
+  const refreshSelectedAnimal = async () => {
+    if (selectedAnimal && selectedAnimal._id) {
+      const updated = await fetchAnimalById(selectedAnimal._id, true, false);
+      setSelectedAnimal(updated);
+    }
+  };
+
+  const {
+    showAnimalModal,
     editAnimal,
-    editAnimalModalOpen,
-    handleAnimalSelected,
-    handleEditAnimal,
-    handleCloseAnimalModal,
+    isEditAnimal,
+    openModal: openAnimalModal,
+    closeModal: closeAnimalModal,
     handleSaveAnimalModal,
-  } = useAnimalForAppointment(initial, open);
+  } = useAnimalModal(refreshSelectedAnimal);
 
   const {
-    editClientModalOpen,
     editClient,
-    handleEditClient,
-    handleCloseClientEditModal,
-    handleClientSaved,
-  } = useClientForAppointment(selectedAnimal, setSelectedAnimal);
-
-  // Remplir les champs si initial change (édition d'un RDV existant)
-  useEffect(() => {
-    setTitle(currentAppointment?.title || "");
-    setComportement(currentAppointment?.comportement || "");
-    setHighlight(currentAppointment?.highlight || false);
-    setComment(currentAppointment?.comment || "");
-    setTarif(currentAppointment?.tarif || "");
-  }, [currentAppointment, open]);
+    showClientModal,
+    setShowClientModal,
+    openModal: openClientModal,
+    closeModal: closeClientModal,
+    handleSaveClient,
+  } = useClientModal(refreshSelectedAnimal);
 
   useEffect(() => {
-    setCurrentAppointment(initial);
-  }, [initial]);
+    if (appointment?.animalId) {
+      // Charger l'animal associé à l'appointment
+      fetchAnimalById(appointment.animalId, true, false)
+        .then(res => {
+          setSelectedAnimal(res);
+        })
+        .catch(() => setSelectedAnimal(null));
+    }
+  }, [appointment]);
 
-  // Enregistrement du rendez-vous
-  const handleSaveAppointment = () => {
-    onSave({
-      title,
-      comportement,
-      highlight,
-      comment,
-      tarif: tarif ? Number(tarif) : null,
-      start,
-      end,
-      animalId: selectedAnimal?._id || null,
-    });
+  const handleAnimalSelected = (animal) => {
+    if (animal && animal._id && animal._id !== selectedAnimal?._id) {
+      setSelectedAnimal(animal);
+
+      const clientNom = animal.client?.nom || "";
+      const race = animal.race ? ` - ${animal.race}` : "";
+      const updateFields = {
+        title: `${animal.nom}${clientNom ? " (" + clientNom + ")" : ""}${race}`,
+        comportement: animal.comportement || "",
+        comment: animal.activiteDefault || "",
+        tarif: animal.tarif || "",
+        animalId: animal._id,
+      };
+
+      setForm(prev => ({
+        ...prev,
+        ...updateFields
+      }));
+
+      setAppointment(prev => ({
+        ...prev,
+        ...updateFields
+      }));
+
+    }
+    setShowAnimalSearch(false);
   };
 
   const handleDissociateAppointment = () => {
     setSelectedAnimal(null);
-    setTitle("");
-    setComportement("");
+    setForm(prev => ({
+      ...prev,
+      ...emptyAppointment,
+      animalId: null,
+    }));
+    setAppointment({
+      ...appointment,
+      ...emptyAppointment,
+      animalId: null,
+    })
+
   };
 
-  const handleSubmitAppointment = (e) => {
+  const handleSubmitAppointment = async (e) => {
     e.preventDefault();
-    handleSaveAppointment();
+    // Nettoyage des champs numériques et booléens
+    const dataToSave = {
+      ...form,
+      tarif: form.tarif ? Number(form.tarif) : null,
+      highlight: !!form.highlight,
+    };
+    if (onSaved) await onSaved(dataToSave);
+    onClose();
   };
 
-  const handleUpdateAppointmentFromAnimalModal = (updatedAppointment) => {
-    if (updatedAppointment._id === currentAppointment?._id) {
-      setCurrentAppointment(updatedAppointment);
-      setTitle(updatedAppointment.title || "");
-      setComportement(updatedAppointment.comportement || "");
-      setHighlight(updatedAppointment.highlight || false);
-      setComment(updatedAppointment.comment || "");
-      setTarif(updatedAppointment.tarif || "");
-    }
+
+
+  const handleChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    setForm(f => ({
+      ...f,
+      [name]: type === "checkbox" ? checked : value
+    }));
   };
 
   return (
@@ -120,7 +184,7 @@ export default function AppointmentEditModal({
               >
                 <MdPets size={20} />
               </IconButton>
-              {selectedAnimal && (
+              {appointment && appointment.animalId && (
                 <span style={{ position: "relative", display: "inline-block" }}>
                   <IconButton
                     aria-label="Dissocier"
@@ -159,8 +223,9 @@ export default function AppointmentEditModal({
                 <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
                   <TextField
                     label="Titre du rendez-vous"
-                    value={title}
-                    onChange={e => setTitle(e.target.value)}
+                    value={form.title}
+                    name="title"
+                    onChange={handleChange}
                     fullWidth
                     margin="dense"
                     size="small"
@@ -170,8 +235,9 @@ export default function AppointmentEditModal({
                 <div style={{ display: "flex", gap: 8, marginTop: 4 }}>
                   <TextField
                     label="Activité"
-                    value={comment}
-                    onChange={e => setComment(e.target.value)}
+                    value={form.comment}
+                    name="comment"
+                    onChange={handleChange}
                     fullWidth
                     margin="dense"
                     size="small"
@@ -182,8 +248,9 @@ export default function AppointmentEditModal({
                   <TextField
                     label="Tarif (€)"
                     type="number"
-                    value={tarif}
-                    onChange={e => setTarif(e.target.value)}
+                    value={form.tarif}
+                    name="tarif"
+                    onChange={handleChange}
                     fullWidth
                     margin="dense"
                     size="small"
@@ -198,13 +265,13 @@ export default function AppointmentEditModal({
                     label="Début"
                     value={
                       start
-                        ? new Date(start).toLocaleString("fr-FR", {
-                            year: "numeric",
-                            month: "2-digit",
-                            day: "2-digit",
-                            hour: "2-digit",
-                            minute: "2-digit"
-                          })
+                        ? new Date(form.start).toLocaleString("fr-FR", {
+                          year: "numeric",
+                          month: "2-digit",
+                          day: "2-digit",
+                          hour: "2-digit",
+                          minute: "2-digit"
+                        })
                         : ""
                     }
                     fullWidth
@@ -217,10 +284,10 @@ export default function AppointmentEditModal({
                     label="Fin"
                     value={
                       end
-                        ? new Date(end).toLocaleTimeString("fr-FR", {
-                            hour: "2-digit",
-                            minute: "2-digit"
-                          })
+                        ? new Date(form.end).toLocaleTimeString("fr-FR", {
+                          hour: "2-digit",
+                          minute: "2-digit"
+                        })
                         : ""
                     }
                     fullWidth
@@ -233,8 +300,9 @@ export default function AppointmentEditModal({
                 <FormControlLabel
                   control={
                     <Checkbox
-                      checked={highlight}
-                      onChange={e => setHighlight(e.target.checked)}
+                      checked={!!form.highlight}
+                      name="highlight"
+                      onChange={handleChange}
                       color="secondary"
                       sx={{ transform: "scale(1.1)", p: 0.2 }}
                       size="small"
@@ -260,24 +328,24 @@ export default function AppointmentEditModal({
                   <AnimalCard
                     animal={selectedAnimal}
                     style={{ height: "100%", minHeight: 100 }}
-                    onEdit={() => handleEditAnimal(selectedAnimal)}
+                    onEdit={openAnimalModal}
                   />
                 </div>
                 <div style={{ flex: 1, height: "100%" }}>
                   <ClientCard
                     client={selectedAnimal?.client}
                     style={{ height: "100%", minHeight: 100 }}
-                    onEdit={handleEditClient}
+                    onEdit={openClientModal}
                   />
                 </div>
               </div>
             )}
           </DialogContent>
           <DialogActions sx={{ px: 2, pb: 1 }}>
-            {initial?._id && (
+            {appointmentProp?._id && (
               <Button
                 color="error"
-                onClick={() => onDelete && onDelete(initial)}
+                onClick={() => onDelete && onDelete(appointment)}
                 sx={{ mr: "auto" }}
                 size="small"
               >
@@ -291,26 +359,28 @@ export default function AppointmentEditModal({
         <AnimalSearchModal
           open={showAnimalSearch}
           onClose={() => setShowAnimalSearch(false)}
-          onAnimalSelected={(animal) =>
-            handleAnimalSelected(animal, setTitle, setComportement, setComment, setTarif)
-          }
+          onAnimalSelected={(animal) => handleAnimalSelected(animal)}
           selectionMode={true}
         />
-        <ClientModal
-          open={editClientModalOpen}
-          onClose={handleCloseClientEditModal}
-          onSaved={handleClientSaved}
-          client={editClient}
-        />
-        <AnimalModal
-          open={editAnimalModalOpen}
-          onClose={handleCloseAnimalModal}
-          onSave={(updatedAnimal) => handleSaveAnimalModal(updatedAnimal, setSelectedAnimal)}
-          animalForm={editAnimal}
-          isEditAnimal={true}
-          animalAppointments={animalAppointments}
-          onUpdateAppointment={handleUpdateAppointmentFromAnimalModal}
-        />
+
+        {editAnimal && (
+          <AnimalModal
+            open={showAnimalModal}
+            onClose={closeAnimalModal}
+            onSaved={handleSaveAnimalModal}
+            editAnimal={editAnimal}
+            isEditAnimal={isEditAnimal}
+            // animalAppointments={editAnimal?.appointments || []}
+          />)}
+
+        {editClient && (
+          <ClientModal
+            open={showClientModal}
+            onClose={closeClientModal}
+            onSaved={handleSaveClient}
+            client={editClient}
+          />
+        )}
       </Dialog>
     </>
   );
