@@ -3,11 +3,12 @@ import axios from "../utils/axios";
 import dayjs from "dayjs";
 
 export function useAppointments() {
+  const [editAppointment, setEditAppointment] = useState([]);
   const [appointments, setAppointments] = useState([]);
 
-  const fetchAppointments = async (selectedDate) => {
+  const fetchAppointments = async (agendaDate) => {
     // Correction : si dimanche, on prend la semaine précédente (lundi précédent)
-    const day = dayjs(selectedDate);
+    const day = dayjs(agendaDate);
     let startOfWeek;
     if (day.day() === 0) { // 0 = dimanche
       // On recule de 6 jours pour tomber sur le lundi précédent
@@ -27,9 +28,9 @@ export function useAppointments() {
     setAppointments(res.data || []);
   };
 
-  const saveAppointment = async (appointmentData, editAppointmentData, selectedDate) => {
-    if (editAppointmentData?._id) {
-      await axios.put(`/api/appointments/${editAppointmentData._id}`, {
+  const saveAppointment = async (appointmentData) => {
+    if (appointmentData?._id) {
+      await axios.put(`/api/appointments/${appointmentData._id}`, {
         ...(appointmentData.animalId ? { animalId: appointmentData.animalId } : {}),
         ...appointmentData,
       });
@@ -39,30 +40,29 @@ export function useAppointments() {
         ...appointmentData,
       });
     }
-    await fetchAppointments(selectedDate);
   };
 
-  const updateAppointment = async ({ event, start, end }, selectedDate) => {
+  const updateAppointment = async ({ event, start, end }) => {
     const id = event.id || event._id;
     await axios.put(`/api/appointments/${id}`, {
       ...event,
       start,
       end,
     });
-    await fetchAppointments(selectedDate);
   };
 
-  const deleteAppointment = async (appointment, selectedDate) => {
+  const deleteAppointment = async (appointment) => {
     await axios.delete(`/api/appointments/${appointment._id || appointment.id}`);
-    await fetchAppointments(selectedDate);
   };
 
   return {
+    editAppointment,
+    setEditAppointment,
     appointments,
+
     fetchAppointments,
     saveAppointment,
     updateAppointment,
     deleteAppointment,
-    setAppointments, // si besoin de le setter manuellement
   };
 }

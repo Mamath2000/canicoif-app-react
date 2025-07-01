@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import axios from "../utils/axios";
 import Dialog from '@mui/material/Dialog';
 import DialogTitle from '@mui/material/DialogTitle';
 import DialogContent from '@mui/material/DialogContent';
@@ -10,33 +11,6 @@ import AnimalModal from "./AnimalModal";
 import AnimalCard from "./AnimalCard";
 import Checkbox from '@mui/material/Checkbox';
 import FormControlLabel from '@mui/material/FormControlLabel';
-import { useAnimalModal } from "../hooks/useAnimalModal";
-import { useClients } from "../hooks/useClients";
-
-
-const emptyClient = {
-  nom: "",
-  prenom: "",
-  adresse: { rue: "", codePostal: "", ville: "" },
-  tel: "",
-  mobile: "",
-  email: "",
-  commentaire: "",
-  archive: false,
-}
-
-const emptyAnimal = {
-  nom: "",
-  espece: "",
-  dateNaissance: "",
-  race: "",
-  taille: "",
-  couleur: "",
-  comportement: "",
-  description: "",
-  decede: false
-};
-
 
 export default function ClientModal({
   open,
@@ -45,12 +19,35 @@ export default function ClientModal({
   client: clientProp
 }) {
 
-  const [form, setForm] = useState(emptyClient);
-
+  const [form, setForm] = useState({
+    nom: "",
+    prenom: "",
+    adresse: { rue: "", codePostal: "", ville: "" },
+    tel: "",
+    mobile: "",
+    email: "",
+    commentaire: "",
+    archive: false, // <-- AJOUT
+  });
+  const [animalForm, setAnimalForm] = useState({
+    nom: "",
+    espece: "",
+    dateNaissance: "",
+    race: "",
+    taille: "",
+    couleur: "",
+    comportement: "",
+    description: "",
+    decede: false
+  });
+  const [openAddAnimalModal, setOpenAddAnimalModal] = useState(false);
+  const [editingAnimalId, setEditingAnimalId] = useState(null);
+  const [isEditAnimal, setIsEditAnimal] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [client, setClient] = useState(null);
   const [animalPage, setAnimalPage] = useState(1);
+  const [animalAppointments, setAnimalAppointments] = useState([]);
 
   const ANIMALS_PER_PAGE = 4;
 
@@ -58,7 +55,6 @@ export default function ClientModal({
   useEffect(() => {
     if (clientProp) {
       setForm({
-        _id: clientProp._id || "",
         nom: clientProp.nom || "",
         prenom: clientProp.prenom || "",
         adresse: {
@@ -70,11 +66,19 @@ export default function ClientModal({
         mobile: clientProp.mobile || "",
         email: clientProp.email || "",
         commentaire: clientProp.commentaire || "",
-        archive: !!clientProp.archive,
+        archive: !!clientProp.archive, // <-- AJOUT
       });
       setClient(clientProp);
     } else {
-      setForm(emptyClient);
+      setForm({
+        nom: "",
+        prenom: "",
+        adresse: { rue: "", codePostal: "", ville: "" },
+        tel: "",
+        mobile: "",
+        email: "",
+        commentaire: "",
+      });
       setClient(null);
     }
   }, [clientProp, open]);
@@ -82,6 +86,17 @@ export default function ClientModal({
   useEffect(() => {
     setAnimalPage(1);
   }, [client && client.animaux && client.animaux.length]);
+
+  // Charger les rendez-vous de l'animal à l'ouverture de la modal d'édition d'animal
+  useEffect(() => {
+    if (openAddAnimalModal && isEditAnimal && editingAnimalId) {
+      axios.get(`/api/animaux/${editingAnimalId}/appointments`)
+        .then(res => setAnimalAppointments(res.data))
+        .catch(() => setAnimalAppointments([]));
+    } else if (!openAddAnimalModal) {
+      setAnimalAppointments([]);
+    }
+  }, [openAddAnimalModal, isEditAnimal, editingAnimalId]);
 
   // Validation simple pour téléphone et email
   const validatePhone = value => /^(\+?\d{1,3}[- ]?)?\d{6,15}$/.test(value) || value === "";
@@ -112,37 +127,97 @@ export default function ClientModal({
     }
   };
 
-  const refreshClient = async () => {
-    if (client && client._id) {
-      const data = await fetchClientById(client._id, true, true);
-      setClient(data);
-    }
-  }
-  const {
-    showAnimalModal,
-    editAnimal,
-    setEditAnimal,
-    isEditAnimal,
-    animalAppointments,
-    openModal: openAnimalModal,
-    closeModal: closeAnimalModal,
-    handleSaveAnimalModal,
-  } = useAnimalModal(refreshClient);
-
-  const {
-    fetchClientById
-  } = useClients();
+  const openAddAnimal = () => {
+    setIsEditAnimal(false);
+    setAnimalForm({
+      nom: "",
+      espece: "",
+      dateNaissance: "",
+      race: "",
+      taille: "",
+      couleur: "",
+      comportement: "",
+      description: "",
+      decede: false
+    });
+    setOpenAddAnimalModal(true);
+  };
 
   // Exemple pour charger les rendez-vous lors de l’édition
   const handleEditAnimal = async (animal) => {
-    setEditAnimal(animal);
-    openAnimalModal(animal);
+    setIsEditAnimal(true);
+    setEditingAnimalId(animal._id);
+    // Récupère animal + ses rendez-vous
+    const animalWithAppointments = await fetchAnimalWithAppointments(animal._id);
+    setAnimalForm({
+      nom: animalWithAppointments.nom || "",
+      espece: animalWithAppointments.espece || "",
+      dateNaissance: animalWithAppointments.dateNaissance ? animalWithAppointments.dateNaissance.slice(0, 10) : "",
+      race: animalWithAppointments.race || "",
+      taille: animalWithAppointments.taille || "",
+      couleur: animalWithAppointments.couleur || "",
+      comportement: animalWithAppointments.comportement || "",
+      description: animalWithAppointments.description || "",
+      decede: !!animalWithAppointments.decede,
+      activiteDefault: animalWithAppointments.activiteDefault || "",
+    });
+    setAnimalAppointments(animalWithAppointments.appointments || []);
+    setOpenAddAnimalModal(true);
   };
 
-  const handleAnimalSaved = async (animalData) => {
-    await handleSaveAnimalModal(animalData);
+  const refreshClient = async (id) => {
+    const res = await axios.get(`/api/clients/${id}?withAnimaux=true&withAppointments=true`);
+    setClient(res.data);
   };
 
+  const handleSaveAnimalModal = async (formData) => {
+    if (!formData.nom || !formData.espece) {
+      alert("Merci de renseigner le nom et l'espèce de l'animal.");
+      return;
+    }
+    try {
+      if (isEditAnimal && editingAnimalId) {
+        await axios.put(`/api/animaux/${editingAnimalId}`, { ...formData, clientId: client._id });
+      } else {
+        await axios.post(`/api/animaux`, { ...formData, clientId: client._id });
+      }
+      await refreshClient(client._id);
+
+      setAnimalForm({
+        nom: "",
+        espece: "",
+        dateNaissance: "",
+        race: "",
+        taille: "",
+        couleur: "",
+        comportement: "",
+        description: "",
+        decede: false
+      });
+      setEditingAnimalId(null);
+      setOpenAddAnimalModal(false);
+      setIsEditAnimal(false);
+    } catch (err) {
+      alert("Erreur lors de l'enregistrement de l'animal : " + (err?.response?.data?.message || ""));
+    }
+  };
+
+  const handleCloseAnimalModal = () => {
+    setOpenAddAnimalModal(false);
+    setIsEditAnimal(false);
+    setEditingAnimalId(null);
+    setAnimalForm({
+      nom: "",
+      espece: "",
+      dateNaissance: "",
+      race: "",
+      taille: "",
+      couleur: "",
+      comportement: "",
+      description: "",
+      decede: false
+    });
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -159,16 +234,41 @@ export default function ClientModal({
       return;
     }
 
-    if (client && client._id) {
-      onSaved && await onSaved(form);
-      onClose();
-    } else {
-      const newClient = onSaved && onSaved(form);
-      setClient(newClient); // Passe en mode édition
-      setEditAnimal(emptyAnimal);
-    }
+    try {
+      if (client && client._id) {
+        // Modification
+        await axios.put(`/api/clients/${client._id}`, form);
+        const res = await axios.get(`/api/clients/${client._id}`);
+        onSaved && onSaved(res.data);
+        onClose();
+      } else {
+        // Création
+        const response = await axios.post("/api/clients", form);
+        const newClient = response.data;
+        setClient(newClient); // Passe en mode édition
+        setAnimalForm({
+          nom: "",
+          espece: "",
+          dateNaissance: "",
+          race: "",
+          taille: "",
+          couleur: "",
+          comportement: "",
+          description: "",
+          decede: false
+        });
+        setEditingAnimalId(null);
+        setOpenAddAnimalModal(false);
+        setIsEditAnimal(false);
 
-    setLoading(false);
+        // onSaved && onSaved();
+        // NE PAS fermer la modale ici, pour permettre l'ajout d'animaux
+      }
+    } catch (err) {
+      setError("Impossible d'enregistrer le client.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const animaux = client && client.animaux ? [...client.animaux] : [];
@@ -186,6 +286,12 @@ export default function ClientModal({
     (animalPage - 1) * ANIMALS_PER_PAGE,
     animalPage * ANIMALS_PER_PAGE
   );
+
+  // Charger un animal avec ses rendez-vous
+  const fetchAnimalWithAppointments = async (animalId) => {
+    const res = await axios.get(`/api/animaux/${animalId}?withAppointments=true`);
+    return res.data;
+  };
 
   if (!open) return null;
 
@@ -375,7 +481,7 @@ export default function ClientModal({
             <Button
               variant="outlined"
               size="small"
-              onClick={() => { openAnimalModal({ ...emptyAnimal, clientId: client._id }); }}
+              onClick={openAddAnimal}
               sx={{ textTransform: "none" }}
             >
               + Ajout d'un animal
@@ -394,12 +500,14 @@ export default function ClientModal({
 
       {/* Dialog pour ajout/édition d'animal */}
       <AnimalModal
-        open={showAnimalModal}
-        onClose={closeAnimalModal}
-        onSaved={handleAnimalSaved}
-        editAnimal={editAnimal}
+        open={openAddAnimalModal}
+        onClose={handleCloseAnimalModal}
+        onSave={handleSaveAnimalModal}
+        animalForm={animalForm}
         isEditAnimal={isEditAnimal}
         animalAppointments={animalAppointments}
+
+
       />
     </Dialog>
   );

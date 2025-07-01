@@ -9,10 +9,14 @@ import Button from '@mui/material/Button';
 import AppointmentEditModal from './components/AppointmentEditModal';
 import AnimalModal from './components/AnimalModal';
 import { getWeekDates } from "./utils/dateUtils";
-import { useAnimalModalForApp } from "./hooks/useAnimalModalForApp";
-import { useAppointmentModalForApp } from "./hooks/useAppointmentModalForApp";
 import { isTestBannerEnabled, getAppVersion } from "./utils/env";
 import LoginModal from "./components/LoginModal";
+
+import { useAnimalModal } from "./hooks/useAnimalModal";
+import { useAppointmentModal } from "./hooks/useAppointmentModal";
+import { useAppointments } from './hooks/useAppointments';
+import { useAnimaux } from "./hooks/useAnimaux";
+
 
 
 function App() {
@@ -32,41 +36,61 @@ function App() {
     })();
   }, []);
 
+
+  const refreshAppointments = async () => {
+    if (token && selectedDate) {
+      fetchAppointments(selectedDate);
+    }
+  };
+
   // --- États principaux ---
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [showClientSearch, setShowClientSearch] = useState(false);
   const [showAnimalSearch, setShowAnimalSearch] = useState(false);
 
+  const {
+    animaux,
+    fetchRecentsAnimaux,
+  } = useAnimaux();
+  const {
+    appointments,
+    fetchAppointments,
+  } = useAppointments();
+
+
+  const refreshApp = async () => {
+    if (token && selectedDate) {
+      await fetchAppointments(selectedDate);
+      await fetchRecentsAnimaux();
+    }
+  };
+
+
   // --- Hooks personnalisés pour la gestion des animaux et des rendez-vous ---
   const {
-    openAddAnimalModal,
-    animalForm,
+    showAnimalModal,
+    editAnimal,
     isEditAnimal,
     animalAppointments,
     openModal: openAnimalModal,
     closeModal: closeAnimalModal,
     handleSaveAnimalModal,
-    animaux,
-    fetchRecentsAnimaux,
-  } = useAnimalModalForApp();
+  } = useAnimalModal(refreshApp);
+
 
   const {
-    appointments,
-    editAppointmentModalOpen,
-    editAppointmentData,
-    selectedAnimal,
-    setSelectedAnimal,
+    editAppointment,
+    showAppointmentModal,
+    // selectedAnimal,
+    // setSelectedAnimal,
     handleSaveAppointment,
     handleDeleteAppointment,
     handleEditAppointment,
     handleCreateSlot,
     handleEventDrop,
-    fetchAppointments,
-    saveAppointment,
-    updateAppointment,
-    deleteAppointment,
+    
     closeModal: handleCloseAppointment,
-  } = useAppointmentModalForApp(fetchRecentsAnimaux, selectedDate);
+  } = useAppointmentModal(refreshApp);
 
   // --- Récupération des données ---
   useEffect(() => {
@@ -104,7 +128,7 @@ function App() {
 
   // --- Intercepteur fetch pour ajouter le token JWT ---
   window._fetch = window._fetch || window.fetch;
-  window.fetch = function(url, options = {}) {
+  window.fetch = function (url, options = {}) {
     const jwt = localStorage.getItem('jwt_token');
     if (jwt && url.startsWith('/api/')) {
       options.headers = options.headers || {};
@@ -300,23 +324,23 @@ function App() {
           onClose={() => setShowClientSearch(false)}
         />
         <AppointmentEditModal
-          open={editAppointmentModalOpen}
+          open={showAppointmentModal}
           onClose={handleCloseAppointment}
-          onSave={handleSaveAppointment}
-          start={editAppointmentData?.start}
-          end={editAppointmentData?.end}
-          initial={editAppointmentData}
-          selectedAnimal={selectedAnimal}
-          setSelectedAnimal={setSelectedAnimal}
+          onSaved={handleSaveAppointment}
+          start={editAppointment?.start}
+          end={editAppointment?.end}
+          appointmentProp={editAppointment}
+          // selectedAnimal={selectedAnimal}
+          // setSelectedAnimal={setSelectedAnimal}
           onDelete={handleDeleteAppointment}
         />
         <AnimalModal
-          open={openAddAnimalModal}
+          open={showAnimalModal}
           onClose={closeAnimalModal}
-          onSave={handleSaveAnimalModal}
-          animalForm={animalForm}
+          onSaved={handleSaveAnimalModal}
+          editAnimal={editAnimal}
           isEditAnimal={isEditAnimal}
-          animalAppointments={animalAppointments}
+          // animalAppointments={editAnimal?.appointments || []}
         />
         <AnimalSearchModal
           open={showAnimalSearch}

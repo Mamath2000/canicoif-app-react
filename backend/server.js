@@ -17,9 +17,6 @@ mongoose.connect(process.env.MONGO_URI);
 const loginRouter = require('./routes/login');
 const authenticateJWT = loginRouter.authenticateJWT;
 
-
-
-
 // Routes API protégées par JWT
 app.use('/api/banner', authenticateJWT, require('./routes/dev-banner'));
 app.use('/api/clients', authenticateJWT, require('./routes/clients'));

@@ -1,3 +1,4 @@
+
 import Paper from '@mui/material/Paper';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
@@ -7,7 +8,13 @@ import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 import EditIcon from '@mui/icons-material/Edit';
 import { getComportementColors } from "../utils/comportementColors";
 
-export default function AnimalCard({ animal, onEdit, style, showLastAppointments = false, appointments = [] }) {
+export default function AnimalCard({ 
+  animal, 
+  onEdit, 
+  style, 
+  showLastAppointments = false, 
+  appointments = [] 
+}) {
   if (!animal) return null;
 
   // Trie et prend les 4 derniers rendez-vous (suppose que appointments sont déjà ceux de cet animal)

@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import axios from "../utils/axios";
 import Dialog from '@mui/material/Dialog';
 import DialogTitle from '@mui/material/DialogTitle';
 import DialogContent from '@mui/material/DialogContent';
@@ -26,13 +25,16 @@ import { MdPets } from "react-icons/md";
 import Checkbox from '@mui/material/Checkbox';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import { getComportementColors } from "../utils/comportementColors";
-import { useAnimalForAnimalSearch } from "../hooks/useAnimalForAnimalSearch";
-import { useClientForSearch } from "../hooks/useClientForSearch"; 
 import ArchiveIcon from '@mui/icons-material/Archive';
+
+import { useClientModal } from "../hooks/useClientModal";
+
+import { useAnimalModal } from "../hooks/useAnimalModal";
+import { useAnimaux } from "../hooks/useAnimaux";
+
 
 export default function AnimalSearchModal({ open, onClose, onAnimalSelected, selectionMode }) {
   const [filters, setFilters] = useState({ nom: "", espece: "", race: "", exclureDecedes: true, exclureClientsArchives: true });
-  const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -40,20 +42,14 @@ export default function AnimalSearchModal({ open, onClose, onAnimalSelected, sel
     fetchAnimaux();
   }, [filters, open]);
 
+  const {
+    animaux,
+    searchAnimaux 
+  } = useAnimaux();
+
   const fetchAnimaux = async () => {
     setLoading(true);
-    try {
-      const params = {};
-      if (filters.nom) params.nom = filters.nom;
-      if (filters.espece) params.espece = filters.espece;
-      if (filters.race) params.race = filters.race;
-      if (filters.exclureDecedes) params.exclureDecedes = true;
-      if (filters.exclureClientsArchives) params.exclureClientsArchives = true;
-      const res = await axios.get("/api/animaux", { params });
-      setResults(res.data);
-    } catch {
-      setResults([]);
-    }
+    await searchAnimaux(filters);
     setLoading(false);
   };
 
@@ -66,21 +62,23 @@ export default function AnimalSearchModal({ open, onClose, onAnimalSelected, sel
   };
 
   const {
+    showAnimalModal,
     editAnimal,
-    editAnimalModalOpen,
-    setEditAnimalModalOpen,
-    handleEditAnimal,
+    isEditAnimal,
+    animalAppointments,
+    openModal: openAnimalModal,
+    closeModal: closeAnimalModal,
     handleSaveAnimalModal,
-    handleUpdateAppointment,
-  } = useAnimalForAnimalSearch(fetchAnimaux);
+  } = useAnimalModal(fetchAnimaux);
 
   const {
     editClient,
-    editClientModalOpen,
-    setEditClientModalOpen,
-    handleEditClient,
-    handleSaveClientModal,
-} = useClientForSearch(fetchAnimaux);
+    showClientModal,
+    setShowClientModal,
+    openModal: openClientModal,
+    closeModal: closeClientModal,
+    handleSaveClient,
+  } = useClientModal(fetchAnimaux);
 
   return (
     <>
@@ -153,7 +151,7 @@ export default function AnimalSearchModal({ open, onClose, onAnimalSelected, sel
           </div>
           <div style={{ marginTop: 8, minHeight: 80 }}>
             {loading && <div>Recherche...</div>}
-            {!loading && results.length > 0 && (
+            {!loading && animaux.length > 0 && (
               <TableContainer component={Paper} variant="outlined">
                 <Table size="small">
                   <TableHead>
@@ -167,7 +165,7 @@ export default function AnimalSearchModal({ open, onClose, onAnimalSelected, sel
                     </TableRow>
                   </TableHead>
                   <TableBody>
-                    {results
+                    {animaux
                       .slice() // pour ne pas muter l'état
                       .sort((a, b) => (a.nom || "").localeCompare(b.nom || ""))
                       .map(animal => (
@@ -212,11 +210,11 @@ export default function AnimalSearchModal({ open, onClose, onAnimalSelected, sel
                           <TableCell>
                             {animal.client
                               ? <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                                  {animal.client.nom} {animal.client.prenom || ""}
-                                  {animal.client.archive && (
-                                    <ArchiveIcon fontSize="small" sx={{ color: "#bfa100", ml: 0.5 }} titleAccess="Archivé" />
-                                  )}
-                                </span>
+                                {animal.client.nom} {animal.client.prenom || ""}
+                                {animal.client.archive && (
+                                  <ArchiveIcon fontSize="small" sx={{ color: "#bfa100", ml: 0.5 }} titleAccess="Archivé" />
+                                )}
+                              </span>
                               : ""}
                           </TableCell>
                           <TableCell align="center">
@@ -224,7 +222,8 @@ export default function AnimalSearchModal({ open, onClose, onAnimalSelected, sel
                               size="small"
                               variant="text"
                               sx={{ minWidth: 0, mr: 1 }}
-                              onClick={() => handleEditAnimal(animal)}
+                              key={animal._id}
+                              onClick={() => openAnimalModal(animal)}
                             >
                               <MdPets size={20} />
                             </Button>
@@ -232,7 +231,7 @@ export default function AnimalSearchModal({ open, onClose, onAnimalSelected, sel
                               size="small"
                               variant="text"
                               sx={{ minWidth: 0 }}
-                              onClick={() => handleEditClient(animal.client)}
+                              onClick={() => openClientModal(animal.client)}
                               disabled={!animal.client}
                             >
                               <LiaPenSolid size={20} />
@@ -253,7 +252,7 @@ export default function AnimalSearchModal({ open, onClose, onAnimalSelected, sel
                 </Table>
               </TableContainer>
             )}
-            {!loading && results.length === 0 && <div>Aucun résultat</div>}
+            {!loading && animaux.length === 0 && <div>Aucun résultat</div>}
           </div>
         </DialogContent>
         <DialogActions>
@@ -263,22 +262,20 @@ export default function AnimalSearchModal({ open, onClose, onAnimalSelected, sel
 
       {editAnimal && (
         <AnimalModal
-          open={editAnimalModalOpen}
-          onClose={() => setEditAnimalModalOpen(false)}
-          animalForm={editAnimal}
-          animalAppointments={editAnimal.appointments || []}
-          onSave={handleSaveAnimalModal}
-          isEditAnimal={true}
-          onUpdateAppointment={handleUpdateAppointment}
-        />
-      )}
+          open={showAnimalModal}
+          onClose={closeAnimalModal}
+          onSaved={handleSaveAnimalModal}
+          editAnimal={editAnimal}
+          isEditAnimal={isEditAnimal}
+          animalAppointments={animalAppointments}
+        />)}
 
       {editClient && (
         <ClientModal
-          open={editClientModalOpen}
-          onClose={() => setEditClientModalOpen(false)}
+          open={showClientModal}
+          onClose={closeClientModal}
+          onSaved={handleSaveClient}
           client={editClient}
-          onSaved={handleSaveClientModal}
         />
       )}
     </>

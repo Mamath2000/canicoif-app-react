@@ -2,30 +2,40 @@ import { useState } from "react";
 import { useAnimaux } from "./useAnimaux";
 
 export function useAnimalModalForApp() {
-  const {
-    saveAnimal,
-    fetchAnimalAppointments,
-    animaux,
-    fetchRecentsAnimaux,
-    animalAppointments,
-    setAnimalAppointments,
-  } = useAnimaux();
-
-  const [openAddAnimalModal, setOpenAddAnimalModal] = useState(false);
-  const [animalForm, setAnimalForm] = useState(null);
+  
+  const [showAnimalModal, setshowAnimalModal] = useState(false);
+  // const [animalForm, setAnimalForm] = useState(null);
   const [isEditAnimal, setIsEditAnimal] = useState(false);
-
+  
+  const {
+    animaux,
+    animalForm,
+    saveAnimal,
+    animalAppointments,
+    fetchRecentsAnimaux,
+    fetchAnimalById,
+    setAnimalAppointments,
+    setAnimalForm
+  } = useAnimaux();
+  
   // Ouvre la modale pour ajout ou édition
-  const openModal = (animal = null) => {
-    setAnimalForm(animal);
-    setIsEditAnimal(!!animal);
-    setOpenAddAnimalModal(true);
-    fetchAnimalAppointments(animal?._id);
+  const openModal = async (animal = null) => {
+    if (animal && animal._id) {
+      await fetchAnimalById(animal._id)
+      setIsEditAnimal(true);
+      setshowAnimalModal(true);
+    
+    } else {
+      setAnimalForm(animal);
+      setIsEditAnimal(false);
+      setshowAnimalModal(true);
+      setAnimalAppointments([]);
+    }
   };
 
   // Ferme la modale et réinitialise les états
   const closeModal = () => {
-    setOpenAddAnimalModal(false);
+    setshowAnimalModal(false);
     setAnimalForm(null);
     setIsEditAnimal(false);
     setAnimalAppointments([]);
@@ -39,7 +49,7 @@ export function useAnimalModalForApp() {
   };
 
   return {
-    openAddAnimalModal,
+    showAnimalModal,
     animalForm,
     isEditAnimal,
     animalAppointments: animalAppointments?.length ? animalAppointments : [],

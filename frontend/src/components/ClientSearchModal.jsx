@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import axios from "../utils/axios";
 import Dialog from '@mui/material/Dialog';
 import DialogTitle from '@mui/material/DialogTitle';
 import DialogContent from '@mui/material/DialogContent';
@@ -20,72 +19,48 @@ import Checkbox from '@mui/material/Checkbox';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import ArchiveIcon from '@mui/icons-material/Archive';
 
-import { useClientForSearch } from "../hooks/useClientForSearch"; 
+import { useClientModal } from "../hooks/useClientModal"; 
+import { useClients } from "../hooks/useClients";
 
 export default function ClientSearchModal({ open, onClose }) {
   // Par défaut, on exclut les archivés (comme dans recherche animal)
   const [filters, setFilters] = useState({ nom: "", animal: "", tel: "", exclureArchives: true });
-  const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(false);
   // const [editClient, setEditClient] = useState(null);
   // const [editModalOpen, setEditModalOpen] = useState(false);
-  const [addModalOpen, setAddModalOpen] = useState(false);
+  // const [addModalOpen, setAddModalOpen] = useState(false);
+
+  
+const { 
+  clients, 
+  searchClients 
+} = useClients();
 
   useEffect(() => {
     if (!open) return;
-    const fetchClients = async () => {
-      setLoading(true);
-      try {
-        const params = {};
-        if (filters.nom) params.nom = filters.nom;
-        if (filters.animal) params.animal = filters.animal;
-        if (filters.tel) params.tel = filters.tel;
-        // On envoie le paramètre exclureArchives (comme exclureClientsArchives côté animal)
-        const res = await axios.get("/api/clients", { params: { ...params, withAnimaux: true, exclureArchives: filters.exclureArchives } });
-      console.log(res.data); // <--- ici
-
-        setResults(res.data);
-      } catch {
-        setResults([]);
-      }
-      setLoading(false);
-    };
-    fetchClients();
+      refreshClients();
   }, [filters, open]);
 
   const handleChange = (e) => {
     setFilters(f => ({ ...f, [e.target.name]: e.target.value }));
   };
 
-  // Gestion de la case à cocher pour exclure les archivés (logique inversée)
-  const handleExclureArchivesChange = (e) => {
-    setFilters(f => ({ ...f, exclureArchives: e.target.checked }));
-  };
+const refreshClients = async () => {
+  setLoading(true);
+  await searchClients(filters);
+  setLoading(false);
+};
 
-  // const handleEditClient = (client) => {
-  //   setEditClient(client);
-  //   setEditModalOpen(true);
-  // };
-
-  // const handleCloseEditModal = () => {
-  //   setEditModalOpen(false);
-  //   setEditClient(null);
-  // };
-
-  // const handleClientSaved = () => {
-  //   setEditModalOpen(false);
-  //   setEditClient(null);
-  //   setFilters({ ...filters }); // force le useEffect à relancer la recherche
-  // };
+  // Utilisation du hook personnalisé pour la modale de clientc
 
   const {
     editClient,
-    editClientModalOpen,
-    setEditClientModalOpen,
-    handleEditClient,
-    handleSaveClientModal,
-} = useClientForSearch();
-
+    showClientModal,
+    setShowClientModal,
+    openModal: openClientModal,
+    closeModal: closeClientModal,
+    handleSaveClient
+  } = useClientModal(refreshClients);
 
   return (
     <>
@@ -145,7 +120,7 @@ export default function ClientSearchModal({ open, onClose }) {
               component="button"
               variant="body2"
               underline="hover"
-              onClick={() => setAddModalOpen(true)}
+              onClick={() => openClientModal(null)}
               sx={{ pr: 0 }}
             >
               Ajouter un nouveau client
@@ -153,7 +128,7 @@ export default function ClientSearchModal({ open, onClose }) {
           </div>
           <div style={{ marginTop: 8, minHeight: 80 }}>
             {loading && <div>Recherche...</div>}
-            {!loading && results.length > 0 && (
+            {!loading && clients.length > 0 && (
               <TableContainer component={Paper} variant="outlined">
                 <Table size="small">
                   <TableHead>
@@ -167,7 +142,7 @@ export default function ClientSearchModal({ open, onClose }) {
                     </TableRow>
                   </TableHead>
                   <TableBody>
-                    {results.map(client => (
+                    {clients.map(client => (
                       <TableRow key={client._id}>
                         <TableCell sx={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", display: "flex", alignItems: "center", gap: 0.5 }}>
                           {client.nom}
@@ -196,7 +171,7 @@ export default function ClientSearchModal({ open, onClose }) {
                             size="small"
                             variant="text"
                             sx={{ minWidth: 0 }}
-                            onClick={() => handleEditClient(client)}
+                            onClick={() => openClientModal(client)}
                           >
                             <LiaPenSolid size={20} />
                           </Button>
@@ -207,7 +182,7 @@ export default function ClientSearchModal({ open, onClose }) {
                 </Table>
               </TableContainer>
             )}
-            {!loading && results.length === 0 && <div>Aucun résultat</div>}
+            {!loading && clients.length === 0 && <div>Aucun résultat</div>}
           </div>
         </DialogContent>
         <DialogActions>
@@ -216,20 +191,10 @@ export default function ClientSearchModal({ open, onClose }) {
       </Dialog>
       {/* Modale de modification du client */}
       <ClientModal
-        open={editClientModalOpen}
-        onClose={() => setEditClientModalOpen(false)}
-        onSaved={handleSaveClientModal}
-        client={editClient}
-      />
-      {/* Modale d'ajout d'un client */}
-      <ClientModal
-        open={addModalOpen}
-        onClose={() => setAddModalOpen(false)}
-        onSaved={() => {
-          setAddModalOpen(false);
-          setFilters({ ...filters });
-        }}
-        client={null}
+          open={showClientModal}
+          onClose={closeClientModal}
+          onSaved={handleSaveClient}
+          client={editClient}
       />
     </>
   );

@@ -13,6 +13,9 @@ import ESPECES from '../data/espece.json';
 import TAILLES from '../data/taille.json';
 import COMPORTEMENTS from '../data/comportement.json';
 
+import { useAppointments } from "../hooks/useAppointments";
+
+
 const emptyAnimal = {
   nom: "",
   espece: "",
@@ -29,26 +32,35 @@ const emptyAnimal = {
 export default function AnimalModal({
   open,
   onClose,
-  onSave,
-  animalForm,
+  onSaved,
+  editAnimal,
   isEditAnimal,
-  animalAppointments = [],
-  onUpdateAppointment
+  // animalAppointments = [],
+  // onUpdateAppointment
 }) {
   const [form, setForm] = useState(emptyAnimal);
+  const [animalAppointments, setAnimalAppointments] = useState([]);
 
   useEffect(() => {
     // On ne met à jour le form que si open passe à true
     if (open) {
-      setForm(animalForm ? { ...emptyAnimal, ...animalForm } : emptyAnimal);
+      setForm(editAnimal ? { ...emptyAnimal, ...editAnimal } : emptyAnimal);
     }
-    // eslint-disable-next-line
-  }, [open, animalForm]);
+    setAnimalAppointments(editAnimal?.appointments || []);
+
+  }, [open, editAnimal]);
+
+const {
+    editAppointment,
+    setEditAppointment,
+    saveAppointment,
+  } = useAppointments();
 
   
   useEffect(() => {
+    const safeAppointments = Array.isArray(animalAppointments) ? animalAppointments : [];
     setAppointmentEdits(
-      (animalAppointments || [])
+      safeAppointments
         .sort((a, b) => new Date(b.start) - new Date(a.start))
         .map(appointment => ({
           ...appointment,
@@ -57,7 +69,6 @@ export default function AnimalModal({
         }))
     );
   }, [animalAppointments, open]);
-
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -72,33 +83,27 @@ export default function AnimalModal({
     if (!form.nom || !form.espece) {
       return;
     }
-
     // Détecte les rendez-vous modifiés
-    const appointmentToUpdate = appointmentEdits.filter((edit, idx) => {
-      const original = animalAppointments[idx];
+    const appointmentToUpdate = appointmentEdits.filter(edit => {
+      const original = animalAppointments.find(a => a._id === edit._id);
       return (
         original &&
-        (edit.comment !== original.comment || String(edit.tarif) !== String(original.tarif))
+        (edit.comment !== original.comment || 
+          (edit.tarif ? Number(edit.tarif) : 0) != (original.tarif ? Number(original.tarif) : 0))
       );
     });
 
     // Met à jour les rendez-vous modifiés
     for (const appointment of appointmentToUpdate) {
-      try {
-        await fetch(`/api/appointments/${appointment._id}`, {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ comment: appointment.comment, tarif: appointment.tarif }),
-        });
-        onUpdateAppointment && onUpdateAppointment(appointment);
-
-      } catch (err) {
-        alert("Erreur lors de la sauvegarde d'un rendez-vous.");
-      }
+      saveAppointment({
+        _id: appointment._id,
+        comment: appointment.comment,
+        tarif: appointment.tarif,
+      });
     }
 
     // Enregistre l'animal (envoie le champ tarif)
-    onSave && onSave({ ...form, tarif: form.tarif ? Number(form.tarif) : null });
+    onSaved && await onSaved({ ...form, tarif: form.tarif ? Number(form.tarif) : null });
   };
 
   // Pour gérer l'édition locale des rendez-vous

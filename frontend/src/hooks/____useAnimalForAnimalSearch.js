@@ -1,34 +1,37 @@
 import { useState } from "react";
-import axios from "axios";
+// import axios from "../utils/axios";
+import { useAnimaux } from "./useAnimaux";
 
 export function useAnimalForAnimalSearch(fetchAnimaux) {
-  const [editAnimal, setEditAnimal] = useState(null);
+  // const [editAnimal, setEditAnimal] = useState(null);
   const [editAnimalModalOpen, setEditAnimalModalOpen] = useState(false);
 
+
+  const {
+    animaux,
+    animalForm,
+    animalAppointments,
+    saveAnimal,
+    fetchAnimalAppointments,
+    fetchRecentsAnimaux,
+    fetchAnimalById,
+    setAnimalAppointments,
+    setAnimalForm
+  } = useAnimaux();
+  
   const handleEditAnimal = async (animal) => {
-    try {
-      const res = await axios.get(`/api/animaux/${animal._id}?withAppointments=true`);
-      setEditAnimal(res.data);
+    if (animal && animal._id) {
+      const res = await fetchAnimalById(animal._id)
+      setAnimalForm(res.data);
       setEditAnimalModalOpen(true);
-    } catch {
-      alert("Impossible de charger l'animal.");
     }
   };
 
   const handleSaveAnimalModal = async (animalData) => {
-    try {
-      const clientId = animalData.client?._id || animalData.clientId;
-      if (!clientId) {
-        alert("Client introuvable pour cet animal.");
-        return;
-      }
-      await axios.put(`/api/animaux/${animalData._id}`, animalData);
-      setEditAnimalModalOpen(false);
-      setEditAnimal(null);
-      fetchAnimaux && fetchAnimaux();
-    } catch {
-      alert("Erreur lors de l'enregistrement.");
-    }
+    await saveAnimal(animalData);
+    setEditAnimalModalOpen(false);
+    setAnimalForm(null);
+    fetchAnimaux && fetchAnimaux();
   };
 
   // onUpdateAppointment doit rafraîchir la liste
@@ -42,7 +45,7 @@ export function useAnimalForAnimalSearch(fetchAnimaux) {
   };
 
   return {
-    editAnimal,
+    animalForm,
     editAnimalModalOpen,
     setEditAnimalModalOpen,
     handleEditAnimal,
