@@ -26,7 +26,7 @@ export default function LoginModal({ open, onLogin }) {
       if (!res.ok || !data.token) {
         setError(data.error || "Erreur de connexion");
       } else {
-        onLogin(data.token, data.username);
+        onLogin(data.token, data.username, data.role || 'user', data.reset, data.id);
       }
     } catch (e) {
       setError("Erreur réseau");
