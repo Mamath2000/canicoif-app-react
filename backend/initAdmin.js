@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
 const User = require('./models/User');
+require('dotenv').config();
 
 const ADMIN_USERNAME = 'admin';
 const PASSWORD_LENGTH = 16;
@@ -15,7 +16,7 @@ function generateRandomPassword(length) {
 }
 
 async function createAdminIfNotExists() {
-  await mongoose.connect('mongodb://localhost:27017/agenda');
+  await mongoose.connect(process.env.MONGO_URI);
   const admin = await User.findOne({ username: ADMIN_USERNAME });
   const password = generateRandomPassword(PASSWORD_LENGTH);
   const passwordHash = await bcrypt.hash(password, 10);
