@@ -33,12 +33,24 @@ router.post('/:id/flag-reset', isAdmin, async (req, res) => {
 });
 
 // Réinitialisation du mot de passe par l'utilisateur
-router.post('/:id/reset-password', async (req, res) => {
+// Middleware spécial pour autoriser la réinit même avec un token de reset
+const allowResetJWT = (req, res, next) => {
+    // Autorise si le token est valide, même avec reset: true
+    if (req.user && req.user.id === req.params.id) return next();
+    return res.status(401).json({ message: 'Non autorisé' });
+};
+
+router.post('/:id/reset-password', allowResetJWT, async (req, res) => {
     const { tempPassword, newPassword } = req.body;
     const user = await User.findById(req.params.id);
     if (!user || !user.resetFlag) return res.status(400).json({ message: 'Non autorisé' });
-    const match = await bcrypt.compare(tempPassword, user.tempPasswordHash);
-    if (!match) return res.status(401).json({ message: 'Code temporaire incorrect' });
+    // Si skipTempPassword (connexion déjà validée par code temporaire)
+    if (tempPassword === 'SKIP') {
+        // pas de vérification du code temporaire
+    } else {
+        const match = await bcrypt.compare(tempPassword, user.tempPasswordHash);
+        if (!match) return res.status(401).json({ message: 'Code temporaire incorrect' });
+    }
     const passwordHash = await bcrypt.hash(newPassword, 10);
     user.passwordHash = passwordHash;
     user.resetFlag = false;
