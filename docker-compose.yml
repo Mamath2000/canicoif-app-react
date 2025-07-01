@@ -1,5 +1,5 @@
 services:
-  app:
+  canicoif:
     container_name: app
     build:
       context: .

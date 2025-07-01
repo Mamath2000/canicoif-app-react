@@ -4,6 +4,7 @@
 
 # Récupère la version actuelle du fichier package.json
 VERSION=$(grep '"version"' package.json | awk -F '"' '{print $4}')
+echo "Version actuelle : $VERSION"
 
 # Incrémente le numéro de build (dernier segment de la version)
 IFS='.' read -r MAJOR MINOR BUILD <<< "$VERSION"
