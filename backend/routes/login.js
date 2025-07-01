@@ -1,6 +1,6 @@
 const express = require('express');
-const fs = require('fs');
-const path = require('path');
+const bcrypt = require('bcrypt');
+const User = require('../models/User');
 const jwt = require('jsonwebtoken');
 const router = express.Router();
 
@@ -8,25 +8,32 @@ const JWT_SECRET = process.env.JWT_SECRET || 'canicoif-secret';
 const JWT_EXPIRES_IN = '12h';
 
 // POST /api/login
-router.post('/', (req, res) => {
+router.post('/', async (req, res) => {
   const { username, password } = req.body;
   if (!username || !password) {
     return res.status(400).json({ error: 'Champs manquants' });
   }
-  const usersPath = path.join(__dirname, '../users.json');
-  let users = [];
-  try {
-    users = JSON.parse(fs.readFileSync(usersPath, 'utf-8'));
-  } catch (e) {
-    return res.status(500).json({ error: 'Impossible de lire les utilisateurs' });
-  }
-  const user = users.find(u => u.username === username && u.password === password);
+  const user = await User.findOne({ username: { $regex: `^${username}$`, $options: 'i' } });
   if (!user) {
     return res.status(401).json({ error: 'Identifiants invalides' });
   }
-  // Génère un token JWT
-  const token = jwt.sign({ username }, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN });
-  res.json({ success: true, token, username });
+  // Si resetFlag est actif, vérifier le code temporaire
+  if (user.resetFlag) {
+    const match = await bcrypt.compare(password, user.tempPasswordHash);
+    if (!match) {
+      return res.status(401).json({ error: 'Code temporaire incorrect' });
+    }
+    // Auth temporaire, demander nouveau mot de passe côté front
+    const token = jwt.sign({ username: user.username, id: user._id, role: user.role, reset: true }, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN });
+    return res.json({ success: true, token, username: user.username, role: user.role, reset: true, id: user._id });
+  }
+  // Sinon, vérification classique
+  const match = await bcrypt.compare(password, user.passwordHash);
+  if (!match) {
+    return res.status(401).json({ error: 'Identifiants invalides' });
+  }
+  const token = jwt.sign({ username: user.username, id: user._id, role: user.role }, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN });
+  res.json({ success: true, token, username: user.username, role: user.role, id: user._id });
 });
 
 // Middleware pour vérifier le token JWT

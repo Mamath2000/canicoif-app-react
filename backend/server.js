@@ -22,6 +22,9 @@ app.use('/api/banner', authenticateJWT, require('./routes/dev-banner'));
 app.use('/api/clients', authenticateJWT, require('./routes/clients'));
 app.use('/api/appointments', authenticateJWT, require('./routes/appointments'));
 app.use('/api/animaux', authenticateJWT, require('./routes/animaux'));
+
+// Gestion des utilisateurs (admin seulement)
+app.use('/api/users', authenticateJWT, require('./routes/users'));
 app.use('/api/login', require('./routes/login'));
 
 
