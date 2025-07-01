@@ -1,5 +1,8 @@
 import { useEffect, useState } from 'react';
 import AgendaSemaine from "./components/AgendaSemaine";
+import UserManagement from "./components/UserManagement";
+import SettingsDialog from "./components/SettingsDialog";
+import PasswordResetModal from "./components/PasswordResetModal";
 import ClientSearchModal from "./components/ClientSearchModal";
 import AnimalSearchModal from "./components/AnimalSearchModal";
 import Calendar from "react-calendar";
@@ -17,8 +20,6 @@ import { useAppointmentModal } from "./hooks/useAppointmentModal";
 import { useAppointments } from './hooks/useAppointments';
 import { useAnimaux } from "./hooks/useAnimaux";
 
-
-
 function App() {
   // Version affichée dans le bandeau
   const { version, gitRef } = getAppVersion();
@@ -28,20 +29,20 @@ function App() {
   const [token, setToken] = useState(() => localStorage.getItem('jwt_token') || "");
   const [username, setUsername] = useState(() => localStorage.getItem('jwt_user') || "");
 
+
+  const [role, setRole] = useState(() => localStorage.getItem('jwt_role') || "user");
+  const [reset, setReset] = useState(false);
+  const [userId, setUserId] = useState(() => localStorage.getItem('jwt_id') || "");
+
   // Affichage asynchrone de la bannière de test (optionnel)
   useEffect(() => {
+    if (!token) return;
     (async () => {
       const enabled = await isTestBannerEnabled();
       setShowTestBanner(enabled);
     })();
-  }, []);
+  }, [token]);
 
-
-  const refreshAppointments = async () => {
-    if (token && selectedDate) {
-      fetchAppointments(selectedDate);
-    }
-  };
 
   // --- États principaux ---
   const [selectedDate, setSelectedDate] = useState(new Date());
@@ -81,14 +82,11 @@ function App() {
   const {
     editAppointment,
     showAppointmentModal,
-    // selectedAnimal,
-    // setSelectedAnimal,
     handleSaveAppointment,
     handleDeleteAppointment,
     handleEditAppointment,
     handleCreateSlot,
     handleEventDrop,
-    
     closeModal: handleCloseAppointment,
   } = useAppointmentModal(refreshApp);
 
@@ -112,17 +110,28 @@ function App() {
   };
 
   // --- Gestion login/logout ---
-  const handleLogin = (jwt, user) => {
+  const handleLogin = (jwt, user, userRole, resetFlag, id) => {
     setToken(jwt);
     setUsername(user);
+    setRole(userRole);
+    setReset(!!resetFlag);
+    setUserId(id);
     localStorage.setItem('jwt_token', jwt);
     localStorage.setItem('jwt_user', user);
+    localStorage.setItem('jwt_role', userRole);
+    localStorage.setItem('jwt_id', id);
   };
+
   const handleLogout = () => {
     setToken("");
     setUsername("");
+    setRole("user");
+    setReset(false);
+    setUserId("");
     localStorage.removeItem('jwt_token');
     localStorage.removeItem('jwt_user');
+    localStorage.removeItem('jwt_role');
+    localStorage.removeItem('jwt_id');
     window.location.reload();
   };
 
@@ -138,9 +147,17 @@ function App() {
   };
 
   // --- Render principal ---
+
   if (!token) {
     return <LoginModal open={true} onLogin={handleLogin} />;
   }
+
+  if (reset) {
+    return <PasswordResetModal open={true} userId={userId} onReset={() => setReset(false)} onLogout={handleLogout} skipTempPassword />;
+  }
+
+  // Affichage de la page de gestion des utilisateurs pour les admins : bouton d'accès
+  const [showSettings, setShowSettings] = useState(false);
 
   // --- Render principal ---
   return (
@@ -185,9 +202,21 @@ function App() {
               </span>
             </span>
           )}
+          {/* Bouton gestion users pour admin */}
+          {role === 'admin' && (
+            <Button
+              variant="contained"
+              size="small"
+              style={{ marginLeft: 16, background: '#1976d2', color: '#fff', fontWeight: 600 }}
+              onClick={() => setShowSettings(true)}
+            >
+              Paramètres
+            </Button>
+          )}
         </div>
       </div>
 
+      <SettingsDialog open={showSettings && role === 'admin'} onClose={() => setShowSettings(false)} />
       <div style={{ display: "flex", height: "calc(100vh - 4rem)" }}>
         {/* Colonne gauche : calendrier et boutons */}
         <div style={{
