@@ -1,6 +1,6 @@
 services:
   canicoif:
-    container_name: app
+    container_name: canicoif
     build:
       context: .
       args:
@@ -12,6 +12,7 @@ services:
       - MONGO_URI=mongodb://mongo:27017/canicoif
       - ANIMAUX_LIMIT=18
       - CLIENTS_LIMIT=18
+      # - TEST_BANNER=false
     # VITE_GIT_REF sera injecté dynamiquement au build
     depends_on:
       - mongo
