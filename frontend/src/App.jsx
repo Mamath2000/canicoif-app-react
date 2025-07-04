@@ -77,9 +77,7 @@ function App() {
   } = useInternalCheck();
 
   const {
-    allSettings,
     getSettings,
-    setSettings,
   } = useSettings();
 
   // --- États principaux ---
@@ -89,6 +87,8 @@ function App() {
 
   const [showStatsDialog, setShowStatsDialog] = useState(false);
   const [showSettingsDialog, setShowSettingsDialog] = useState(false);
+  
+  // Setting ===============================================================
   const [showStatsFlag, setShowStatsFlag] = useState(false);
 
   const {
@@ -157,7 +157,6 @@ function App() {
   const handleCloseSettingsDialog = () => {
     fetchSettings();
     setShowSettingsDialog(false);
-    // setShowStatsFlag(getSettings('showStatsFlag') || false);
   }
 
   // --- Gestion login/logout ---
@@ -202,14 +201,6 @@ function App() {
     };
   }, []);
 
-  // useEffect(() => {
-  //   const interval = setInterval(() => {
-  //     checkServer();
-  //   }, 30000); // 30 secondes
-
-  //   return () => clearInterval(interval); // Nettoyage à la désactivation du composant
-  // }, [checkServer]);
-
   useEffect(() => {
     const interval = setInterval(async () => {
       const isServerOk = await checkServer();
@@ -222,16 +213,16 @@ function App() {
   }, [checkServer, handleLogout]);
 
 
-  // --- Intercepteur fetch pour ajouter le token JWT ---
-  window._fetch = window._fetch || window.fetch;
-  window.fetch = function (url, options = {}) {
-    const jwt = localStorage.getItem('jwt_token');
-    if (jwt && url.startsWith('/api/')) {
-      options.headers = options.headers || {};
-      options.headers['Authorization'] = 'Bearer ' + jwt;
-    }
-    return window._fetch(url, options);
-  };
+  // // --- Intercepteur fetch pour ajouter le token JWT ---
+  // window._fetch = window._fetch || window.fetch;
+  // window.fetch = function (url, options = {}) {
+  //   const jwt = localStorage.getItem('jwt_token');
+  //   if (jwt && url.startsWith('/api/')) {
+  //     options.headers = options.headers || {};
+  //     options.headers['Authorization'] = 'Bearer ' + jwt;
+  //   }
+  //   return window._fetch(url, options);
+  // };
 
   // --- Render principal ---
   let content;
