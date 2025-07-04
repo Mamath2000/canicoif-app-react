@@ -21,7 +21,7 @@ DOCKER_USER=${DOCKER_USER:-$(read -p "Entrez votre nom d'utilisateur Docker Hub 
 docker tag $APP_NAME-app-react-canicoif:latest $DOCKER_USER/$APP_NAME:latest
 docker tag $APP_NAME-app-react-canicoif:latest $DOCKER_USER/$APP_NAME:$VERSION
 
-docker login --username $DOCKER_USER
+# docker login --username $DOCKER_USER
 
 # Pousse les images sur Docker Hub
 docker push $DOCKER_USER/$APP_NAME:latest
