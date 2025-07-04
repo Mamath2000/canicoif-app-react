@@ -144,6 +144,7 @@ function App() {
       const weekDates = getWeekDates(selectedDate);
       const monday = new Date(weekDates[0]);
       fetchAppointments(monday);
+      refreshApp();
     }
   }, [selectedDate, token]);
 
