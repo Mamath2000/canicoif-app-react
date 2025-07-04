@@ -1,7 +1,6 @@
 const express = require('express');
 const router = express.Router();
 const Appointment = require('../models/Appointment');
-const Client = require('../models/Client');
 const Animal = require('../models/Animal'); // Assure-toi que c'est bien importé
 
 
