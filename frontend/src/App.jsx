@@ -21,6 +21,8 @@ import { useAppointments } from './hooks/useAppointments';
 import { useAnimaux } from "./hooks/useAnimaux";
 import { useSettings } from "./components/settings/hooks/useSettings";
 
+import { useInternalCheck } from "./hooks/useInternalCheck";
+
 import React from 'react';
 
 class ErrorBoundary extends React.Component {
@@ -68,6 +70,11 @@ function App() {
       setShowTestBanner(enabled);
     })();
   }, [token]);
+
+  // Vérification de l'état du serveur et de la session
+  const {
+    checkServer,
+  } = useInternalCheck();
 
   const {
     allSettings,
@@ -193,6 +200,26 @@ function App() {
       window.removeEventListener("logout", handleLogout);
     };
   }, []);
+
+  // useEffect(() => {
+  //   const interval = setInterval(() => {
+  //     checkServer();
+  //   }, 30000); // 30 secondes
+
+  //   return () => clearInterval(interval); // Nettoyage à la désactivation du composant
+  // }, [checkServer]);
+
+  useEffect(() => {
+    const interval = setInterval(async () => {
+      const isServerOk = await checkServer();
+      if (!isServerOk) {
+        handleLogout();
+      }
+    }, 30000); // 30 secondes
+
+    return () => clearInterval(interval); // Nettoyage à la désactivation du composant
+  }, [checkServer, handleLogout]);
+
 
   // --- Intercepteur fetch pour ajouter le token JWT ---
   window._fetch = window._fetch || window.fetch;
