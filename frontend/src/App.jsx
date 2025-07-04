@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import AgendaSemaine from "./components/AgendaSemaine";
-import UserManagement from "./components/UserManagement";
 import SettingsDialog from "./components/SettingsDialog";
 import PasswordResetModal from "./components/PasswordResetModal";
 import StatsDialog from "./components/StatsDialog";
@@ -20,6 +19,7 @@ import { useAnimalModal } from "./hooks/useAnimalModal";
 import { useAppointmentModal } from "./hooks/useAppointmentModal";
 import { useAppointments } from './hooks/useAppointments';
 import { useAnimaux } from "./hooks/useAnimaux";
+import { useSettings } from "./components/settings/hooks/useSettings";
 
 import React from 'react';
 
@@ -69,21 +69,30 @@ function App() {
     })();
   }, [token]);
 
+  const {
+    allSettings,
+    getSettings,
+    setSettings,
+  } = useSettings();
 
   // --- États principaux ---
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [showClientSearch, setShowClientSearch] = useState(false);
   const [showAnimalSearch, setShowAnimalSearch] = useState(false);
 
+  const [showStatsDialog, setShowStatsDialog] = useState(false);
+  const [showSettingsDialog, setShowSettingsDialog] = useState(false);
+  const [showStatsFlag, setShowStatsFlag] = useState(false);
+
   const {
     animaux,
     fetchRecentsAnimaux,
   } = useAnimaux();
+
   const {
     appointments,
     fetchAppointments,
   } = useAppointments();
-
 
   const refreshApp = async () => {
     if (token && selectedDate) {
@@ -92,18 +101,15 @@ function App() {
     }
   };
 
-
   // --- Hooks personnalisés pour la gestion des animaux et des rendez-vous ---
   const {
     showAnimalModal,
     editAnimal,
     isEditAnimal,
-    animalAppointments,
     openModal: openAnimalModal,
     closeModal: closeAnimalModal,
     handleSaveAnimalModal,
   } = useAnimalModal(refreshApp);
-
 
   const {
     editAppointment,
@@ -116,9 +122,14 @@ function App() {
     closeModal: handleCloseAppointment,
   } = useAppointmentModal(refreshApp);
 
+  const fetchSettings = async () => {
+    const showStats = await getSettings('showStatsFlag'); // Attendez que la promesse soit résolue
+    setShowStatsFlag(!!showStats); // Mettez à jour l'état avec un booléen
+  };
+
   // --- Récupération des données ---
   useEffect(() => {
-    if (token) fetchRecentsAnimaux();
+    if (token) fetchSettings();
   }, [token]);
 
   useEffect(() => {
@@ -134,6 +145,12 @@ function App() {
       setSelectedDate(date);
     }
   };
+
+  const handleCloseSettingsDialog = () => {
+    fetchSettings();
+    setShowSettingsDialog(false);
+    // setShowStatsFlag(getSettings('showStatsFlag') || false);
+  }
 
   // --- Gestion login/logout ---
   const handleLogin = (jwt, user, userRole, resetFlag, id) => {
@@ -191,10 +208,6 @@ function App() {
   // --- Render principal ---
   let content;
   // Affichage de la page de gestion des utilisateurs pour les admins : bouton d'accès
-  const [showSettings, setShowSettings] = useState(false);
-  const [showStats, setShowStats] = useState(false);
-
-  const showStatsButton = isStatsButtonEnabled();
 
   if (!token) {
     content = <LoginModal open={true} onLogin={handleLogin} />;
@@ -243,12 +256,12 @@ function App() {
               </span>
             )}
             {/* Bouton statistiques pour tous */}
-            {showStatsButton && (
+            {showStatsFlag && (
               <Button
                 variant="contained"
                 size="small"
                 style={{ marginLeft: 16, background: '#43a047', color: '#fff', fontWeight: 600 }}
-                onClick={() => setShowStats(true)}
+                onClick={() => setShowStatsDialog(true)}
               >
                 Statistiques
               </Button>
@@ -259,7 +272,7 @@ function App() {
                 variant="contained"
                 size="small"
                 style={{ marginLeft: 16, background: '#1976d2', color: '#fff', fontWeight: 600 }}
-                onClick={() => setShowSettings(true)}
+                onClick={() => setShowSettingsDialog(true)}
               >
                 Paramètres
               </Button>
@@ -267,8 +280,14 @@ function App() {
           </div>
         </div>
 
-        <StatsDialog open={showStats} onClose={() => setShowStats(false)} />
-        <SettingsDialog open={showSettings && role === 'admin'} onClose={() => setShowSettings(false)} />
+        <StatsDialog
+          open={showStatsDialog}
+          onClose={() => setShowStatsDialog(false)}
+        />
+        <SettingsDialog
+          open={showSettingsDialog && role === 'admin'}
+          onClose={handleCloseSettingsDialog}
+        />
         <div style={{ display: "flex", height: "calc(100vh - 4rem)" }}>
           {/* Colonne gauche : calendrier et boutons */}
           <div style={{
@@ -346,88 +365,88 @@ function App() {
               >
                 RECHERCHE ANIMAL
               </Button>
-          </div>
-          {/* Liste des animaux triée par date de modification */}
-          <div style={{ marginTop: "0.5rem", width: "90%" }}>
-            <div className="animaux-recents-titre">Animaux récents</div>
-            <div style={{ overflowY: "auto" }}>
-              {Array.isArray(animaux) && animaux
-                .slice() // pour ne pas muter le state
-                .sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt))
-                .map(animal => (
-                  <div
-                    key={animal._id}
-                    onClick={() => openAnimalModal(animal)}
-                    style={{
-                      cursor: "pointer",
-                      padding: "6px 8px",
-                      borderRadius: 6,
-                      marginBottom: 2,
-                      background: "#fff",
-                      transition: "background 0.2s",
-                      fontSize: 14,
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 8,
-                      border: "1px solid #eee"
-                    }}
-                    onMouseOver={e => (e.currentTarget.style.background = "#f5f5f5")}
-                    onMouseOut={e => (e.currentTarget.style.background = "#fff")}
-                  >
-                    <span style={{ fontWeight: 600 }}>{animal.nom}</span>
-                    <span style={{ color: "#888", fontSize: 13, marginLeft: 6 }}>
-                      {animal.client?.nom ? `(${animal.client.nom})` : ""}
-                    </span>
-                    <span style={{ color: "#555", fontSize: 13, marginLeft: "auto" }}>
-                      {animal.race}
-                    </span>
-                  </div>
-                ))}
+            </div>
+            {/* Liste des animaux triée par date de modification */}
+            <div style={{ marginTop: "0.5rem", width: "90%" }}>
+              <div className="animaux-recents-titre">Animaux récents</div>
+              <div style={{ overflowY: "auto" }}>
+                {Array.isArray(animaux) && animaux
+                  .slice() // pour ne pas muter le state
+                  .sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt))
+                  .map(animal => (
+                    <div
+                      key={animal._id}
+                      onClick={() => openAnimalModal(animal)}
+                      style={{
+                        cursor: "pointer",
+                        padding: "6px 8px",
+                        borderRadius: 6,
+                        marginBottom: 2,
+                        background: "#fff",
+                        transition: "background 0.2s",
+                        fontSize: 14,
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 8,
+                        border: "1px solid #eee"
+                      }}
+                      onMouseOver={e => (e.currentTarget.style.background = "#f5f5f5")}
+                      onMouseOut={e => (e.currentTarget.style.background = "#fff")}
+                    >
+                      <span style={{ fontWeight: 600 }}>{animal.nom}</span>
+                      <span style={{ color: "#888", fontSize: 13, marginLeft: 6 }}>
+                        {animal.client?.nom ? `(${animal.client.nom})` : ""}
+                      </span>
+                      <span style={{ color: "#555", fontSize: 13, marginLeft: "auto" }}>
+                        {animal.race}
+                      </span>
+                    </div>
+                  ))}
+              </div>
             </div>
           </div>
-        </div>
-        {/* Colonne principale : agenda */}
-        <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column" }}>
-          <div style={{ flex: 1, minHeight: 0 }}>
-            <AgendaSemaine
-              appointments={appointments}
-              onSelectEvent={appointment => handleEditAppointment(appointment)}
-              onCreateSlot={handleCreateSlot}
-              onEventDrop={handleEventDrop}
-              onEventResize={handleEventDrop}
-              selectedDate={selectedDate}
-              onNavigate={setSelectedDate}
-            />
+          {/* Colonne principale : agenda */}
+          <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column" }}>
+            <div style={{ flex: 1, minHeight: 0 }}>
+              <AgendaSemaine
+                appointments={appointments}
+                onSelectEvent={appointment => handleEditAppointment(appointment)}
+                onCreateSlot={handleCreateSlot}
+                onEventDrop={handleEventDrop}
+                onEventResize={handleEventDrop}
+                selectedDate={selectedDate}
+                onNavigate={setSelectedDate}
+              />
+            </div>
           </div>
-        </div>
-        <ClientSearchModal
-          open={showClientSearch}
-          onClose={() => setShowClientSearch(false)}
-        />
-        <AppointmentEditModal
-          open={showAppointmentModal}
-          onClose={handleCloseAppointment}
-          onSaved={handleSaveAppointment}
-          start={editAppointment?.start}
-          end={editAppointment?.end}
-          appointmentProp={editAppointment}
-          // selectedAnimal={selectedAnimal}
-          // setSelectedAnimal={setSelectedAnimal}
-          onDelete={handleDeleteAppointment}
-        />
-        <AnimalModal
-          open={showAnimalModal}
-          onClose={closeAnimalModal}
-          onSaved={handleSaveAnimalModal}
-          editAnimal={editAnimal}
-          isEditAnimal={isEditAnimal}
+          <ClientSearchModal
+            open={showClientSearch}
+            onClose={() => setShowClientSearch(false)}
+          />
+          <AppointmentEditModal
+            open={showAppointmentModal}
+            onClose={handleCloseAppointment}
+            onSaved={handleSaveAppointment}
+            start={editAppointment?.start}
+            end={editAppointment?.end}
+            appointmentProp={editAppointment}
+            // selectedAnimal={selectedAnimal}
+            // setSelectedAnimal={setSelectedAnimal}
+            onDelete={handleDeleteAppointment}
+          />
+          <AnimalModal
+            open={showAnimalModal}
+            onClose={closeAnimalModal}
+            onSaved={handleSaveAnimalModal}
+            editAnimal={editAnimal}
+            isEditAnimal={isEditAnimal}
           // animalAppointments={editAnimal?.appointments || []}
-        />
-        <AnimalSearchModal
-          open={showAnimalSearch}
-          onClose={() => setShowAnimalSearch(false)}
-          selectionMode={false}
-        />
+          />
+          <AnimalSearchModal
+            open={showAnimalSearch}
+            onClose={() => setShowAnimalSearch(false)}
+            selectionMode={false}
+          />
         </div>
       </>
     );

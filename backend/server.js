@@ -30,6 +30,9 @@ app.use('/api/stats', authenticateJWT, require('./routes/stats'));
 app.use('/api/users', authenticateJWT, require('./routes/users'));
 app.use('/api/login', require('./routes/login'));
 
+// Ajout de la route pour les paramètres globaux
+app.use('/api/settings', authenticateJWT, require('./routes/settings'));
+
 
 
 

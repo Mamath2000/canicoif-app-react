@@ -19,6 +19,13 @@ router.get('/', isAdmin, async (req, res) => {
 router.post('/', isAdmin, async (req, res) => {
     const { username, password, role } = req.body;
     if (!username || !password || !role) return res.status(400).json({ message: 'Champs manquants' });
+
+    // Vérification des doublons
+    const existingUser = await User.findOne({ username });
+    if (existingUser) {
+        return res.status(409).json({ message: 'Nom d\'utilisateur déjà pris' });
+    }
+
     const passwordHash = await bcrypt.hash(password, 10);
     const user = await User.create({ username, passwordHash, role });
     res.status(201).json({ id: user._id, username: user.username, role: user.role });
@@ -57,6 +64,25 @@ router.post('/:id/reset-password', allowResetJWT, async (req, res) => {
     user.tempPasswordHash = null;
     await user.save();
     res.json({ message: 'Mot de passe réinitialisé' });
+});
+
+// Supprimer un utilisateur
+router.delete('/:id', isAdmin, async (req, res) => {
+    try {
+        const user = await User.findById(req.params.id);
+        if (!user) {
+            return res.status(404).json({ message: 'Utilisateur non trouvé' });
+        }
+
+        if (user.username === 'admin') {
+            return res.status(403).json({ message: 'Impossible de supprimer l\'utilisateur admin' });
+        }
+
+        await User.findByIdAndDelete(req.params.id);
+        res.status(200).json({ message: 'Utilisateur supprimé avec succès' });
+    } catch (error) {
+        res.status(500).json({ message: 'Erreur lors de la suppression de l\'utilisateur' });
+    }
 });
 
 module.exports = router;
