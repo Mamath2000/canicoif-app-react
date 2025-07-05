@@ -49,10 +49,6 @@ li {
   display: none !important;
 }
 
-.rbc-allday-cell {
-  display: none;
-}
-
 .bandeau-btn {
   background: #dedede;      /* gris très clair et lumineux */
   color: #111;

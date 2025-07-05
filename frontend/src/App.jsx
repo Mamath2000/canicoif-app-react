@@ -20,6 +20,7 @@ import { useAppointmentModal } from "./hooks/useAppointmentModal";
 import { useAppointments } from './hooks/useAppointments';
 import { useAnimaux } from "./hooks/useAnimaux";
 import { useSettings } from "./components/settings/hooks/useSettings";
+import dayjs from "dayjs";
 
 import React from 'react';
 
@@ -336,7 +337,9 @@ function App() {
                 value={selectedDate}
                 calendarType="iso8601"
                 locale="fr-FR"
-                showNeighboringMonth={false}
+                  formatMonthYear={(locale, date) =>
+                  date.toLocaleDateString(locale, { month: 'short', year: '2-digit' })
+                }
                 minDetail="month"
                 maxDetail="month"
                 tileClassName={({ date, view }) => {

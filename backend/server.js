@@ -19,7 +19,6 @@ const authenticateJWT = loginRouter.authenticateJWT;
 
 // Routes API protégées par JWT
 app.use('/api/banner', authenticateJWT, require('./routes/dev-banner'));
-app.use('/api/internal-check', authenticateJWT, require('./routes/internal-check'));
 
 app.use('/api/clients', authenticateJWT, require('./routes/clients'));
 app.use('/api/appointments', authenticateJWT, require('./routes/appointments'));
