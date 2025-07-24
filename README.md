@@ -24,6 +24,13 @@ flowchart TD
         D3[Historique soins]
         D4[Statistiques]
     end
+    subgraph Admin
+        E1[Gestion utilisateurs]
+        E2[Paramètres globaux]
+        E3[Configuration système]
+        E1 --- E2
+        E2 --- E3
+    end
 
     A --> B1
     A --> C1
@@ -37,15 +44,20 @@ flowchart TD
     C3 --> D2
     C3 --> D3
     C1 --> D4
+    B3 --> E1
+    C1 --> E2
+    C1 --> E3
 
     %% Styles
     classDef frontend fill,stroke:#0277bd,stroke-width:2px;
     classDef backend fill,stroke:#7b1fa2,stroke-width:2px;
     classDef features fill,stroke:#2e7d32,stroke-width:2px;
+    classDef admin fill,stroke:#ff6f00,stroke-width:2px;
     
     class C1,C2,C3,C4 frontend;
     class B1,B2,B3 backend;
     class D1,D2,D3,D4 features;
+    class E1,E2,E3 admin;
 ```
 
 Cette application de gestion vétérinaire propose plusieurs fonctionnalités complètes :
