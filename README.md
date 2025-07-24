@@ -1,89 +1,302 @@
-# Projet Canicoif
+# Canicoif
 
-Ce projet est une application de gestion de rendez-vous construite avec React pour le frontend et Express pour le backend. Il utilise MongoDB comme base de données pour stocker les informations des rendez-vous.
+## 🐕 Fonctionnalités principales
 
-## Structure du projet
+> **À savoir :** Cette application de gestion de RDV pour salon de toilétage, fonctionne entièrement en `local` avec votre propre base de données MongoDB. Cela garantit la confidentialité des données de vos clients et la rapidité d'accès, même sans connexion internet.
 
-Le projet est organisé comme suit :
+```mermaid
+flowchart TD
+    A[Application Canicoif]
+    subgraph Backend
+        B1[API Express.js]
+        B2[Base MongoDB locale]
+        B3[Authentification JWT]
+    end
+    subgraph Frontend
+        C1[Interface React]
+        C2[Agenda hebdomadaire]
+        C3[Gestion clients/animaux]
+        C4[Recherche avancée]
+    end
+    subgraph Features
+        D1[Rendez-vous]
+        D2[Fiches clients]
+        D3[Historique soins]
+        D4[Statistiques]
+    end
+
+    A --> B1
+    B1 --> B2
+    B1 --> B3
+    B1 --> C1
+    C1 --> C2
+    C1 --> C3
+    C1 --> C4
+    C2 --> D1
+    C3 --> D2
+    C3 --> D3
+    C1 --> D4
+
+    %% Styles
+    classDef frontend fill:#e1f5fe,stroke:#0277bd,stroke-width:2px;
+    classDef backend fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px;
+    classDef features fill:#e8f5e8,stroke:#2e7d32,stroke-width:2px;
+    
+    class C1,C2,C3,C4 frontend;
+    class B1,B2,B3 backend;
+    class D1,D2,D3,D4 features;
+```
+
+Cette application de gestion vétérinaire propose plusieurs fonctionnalités complètes :
+
+### 1. Gestion complète des rendez-vous
+
+- Interface agenda hebdomadaire intuitive avec vue claire des créneaux
+- Création, modification et suppression de rendez-vous en temps réel
+- Association automatique client-animal pour chaque rendez-vous
+- Gestion des horaires et optimisation de l'emploi du temps
+
+### 2. Base de données clients et animaux
+
+- Fiches clients détaillées avec coordonnées complètes
+- Gestion multi-animaux par client avec historique individualisé
+- Recherche avancée par nom, téléphone, espèce, ou autres critères
+- Suivi personnalisé de chaque animal (espèce, race, âge, comportement)
+
+### 3. Interface de recherche performante
+
+- Recherche clients instantanée avec filtres multiples
+- Localisation rapide d'animaux dans la base de données
+- Interface responsive adaptée aux tablettes et mobiles
+- Navigation intuitive entre les différentes sections
+
+## ⚡ Commande principale pour lancer Canicoif
+
+La commande `make` permet de gérer facilement toutes les étapes du projet : installation, lancement, diagnostic, génération mot de passe admin, etc. Elle automatise les tâches courantes pour simplifier l'utilisation.
+
+Voici la liste des commandes disponibles :
+
+| Commande              | Description |
+|-----------------------|-------------|
+| `make help`           | Affiche l'aide et la liste des commandes |
+| `make quick-start`    | Installation et démarrage complet en une commande |
+| `make install`        | Installe toutes les dépendances (backend + frontend) |
+| `make dev`            | Lance l'application en mode développement |
+| `make prod`           | Lance l'application en mode production |
+| `make admin-pwd`      | Génère un nouveau mot de passe administrateur |
+| `make check`          | Diagnostic complet (dépendances, .env, MongoDB, Docker) |
+| `make setup-env`      | Crée un fichier .env basique |
+| `make start-mongo`    | Démarre le service MongoDB |
+| `make docker-build`   | Construit l'image Docker |
+| `make docker-up`      | Lance avec Docker Compose |
+| `make clean`          | Nettoie les fichiers temporaires |
+
+Pour lancer le service en mode interactif (Ctrl+C pour arrêter) :
+
+```bash
+make dev
+```
+
+## 🚀 Installation rapide
+
+```bash
+# 1. Installation complète automatique
+make quick-start
+```
+
+Cette commande unique va :
+- Installer toutes les dépendances
+- Créer le fichier `.env`
+- Démarrer MongoDB
+- Générer le mot de passe admin
+- Lancer l'application en mode développement
+
+## 📋 Prérequis
+
+Avant d'installer l'application, assurez-vous d'avoir :
+
+- **Node.js** (version 18+ recommandée) : [Télécharger Node.js](https://nodejs.org/)
+- **npm** (inclus avec Node.js)
+- **MongoDB** : 
+  - Installation locale : [Télécharger MongoDB](https://www.mongodb.com/try/download/community)
+  - Ou utiliser MongoDB Atlas (cloud) : [MongoDB Atlas](https://www.mongodb.com/atlas)
+- **Docker** (optionnel) : Pour le déploiement en conteneur
+
+### Vérification des prérequis
+
+```bash
+make check  # Vérifie tout automatiquement
+```
+
+## 📝 Configuration
+
+### Configuration automatique
+
+```bash
+make setup-env  # Crée un fichier .env avec les valeurs par défaut
+```
+
+### Configuration manuelle
+
+Éditez le fichier `backend/.env` avec les paramètres suivants :
+
+```env
+# Base de données
+MONGO_URI=mongodb://localhost:27017/canicoif
+# Ou pour MongoDB Atlas :
+# MONGO_URI=mongodb+srv://username:password@cluster.mongodb.net/canicoif
+
+# Sécurité
+JWT_SECRET=votre_secret_jwt_genere_automatiquement
+
+# Serveur
+NODE_ENV=development
+PORT=5000
+```
+
+### Configuration du compte administrateur
+
+```bash
+make admin-pwd  # Génère un mot de passe admin sécurisé
+```
+
+Le script affichera :
+- **Nom d'utilisateur** : `admin`
+- **Mot de passe** : généré aléatoirement (16 caractères)
+
+⚠️ **Important** : Notez bien le mot de passe car il ne sera plus accessible après.
+
+## 🌐 Accès à l'application
+
+### Mode développement
+- **Frontend** : `http://localhost:5173` (Vite dev server)
+- **Backend API** : `http://localhost:5000`
+
+### Mode production
+- **Application complète** : `http://localhost:5000`
+
+## 🐳 Déploiement Docker
+
+```bash
+# Construction de l'image
+make docker-build
+
+# Lancement avec Docker Compose
+make docker-up
+```
+
+## 📊 Structure du projet
 
 ```
-canicoif-app
-├── backend
-│   ├── .env
-│   ├── server.js
-│   ├── models
-│   │   └── Appointment.js
-│   └── routes
-│       └── appointments.js
-├── frontend
-│   ├── App.js
-│   ├── eslint.config.js
-│   ├── index.html
-│   ├── package.json
-│   ├── README.md
-│   ├── vite.config.js
-│   ├── components
-│   │   ├── AppointmentForm.js
-│   │   └── AppointmentList.js
-│   ├── public
-│   │   └── vite.svg
-│   └── src
-│       ├── App.css
-│       ├── App.jsx
-│       ├── index.css
-│       ├── main.jsx
-│       └── assets
-│           └── react.svg
+canicoif-app-react/
+├── backend/                 # API Express.js
+│   ├── models/             # Modèles MongoDB (Mongoose)
+│   ├── routes/             # Routes API REST
+│   ├── server.js           # Point d'entrée serveur
+│   └── initAdmin.js        # Script génération admin
+├── frontend/               # Interface React
+│   ├── src/
+│   │   ├── components/     # Composants React
+│   │   ├── hooks/          # Hooks personnalisés
+│   │   └── utils/          # Utilitaires
+│   └── public/             # Assets statiques
+├── ecrans/                 # Captures d'écran
+├── Makefile               # Commandes automatisées
+└── docker-compose.yml     # Configuration Docker
 ```
 
-## Backend
+## 🔧 Commandes détaillées
 
-- **`backend/.env`** : Contient la variable d'environnement `MONGO_URI` pour la connexion à MongoDB.
-- **`backend/server.js`** : Point d'entrée du serveur, configure Express, CORS et connecte à MongoDB.
-- **`backend/models/Appointment.js`** : Définit le modèle Mongoose pour les rendez-vous.
-- **`backend/routes/appointments.js`** : Gère les routes pour obtenir, ajouter et supprimer des rendez-vous.
+### Installation et démarrage
 
-## Frontend
+```bash
+make install      # Installation des dépendances uniquement
+make dev         # Développement (backend + frontend séparés)
+make prod        # Production (frontend compilé)
+```
 
-- **`frontend/App.js`** : Composant principal de l'application React, gère l'état des rendez-vous.
-- **`frontend/components/AppointmentForm.js`** : Permet d'ajouter un nouveau rendez-vous.
-- **`frontend/components/AppointmentList.js`** : Affiche la liste des rendez-vous et permet de les supprimer.
-- **`frontend/eslint.config.js`** : Configure ESLint pour le projet.
-- **`frontend/index.html`** : Fichier HTML principal pour charger l'application React.
-- **`frontend/package.json`** : Contient les métadonnées et les dépendances du projet.
-- **`frontend/vite.config.js`** : Configure Vite pour le projet.
-- **`frontend/public/vite.svg`** : Icône utilisée dans l'application.
-- **`frontend/src/App.css`** : Styles CSS pour le composant `App`.
-- **`frontend/src/App.jsx`** : Version JSX du composant `App`.
-- **`frontend/src/index.css`** : Styles CSS globaux pour l'application.
-- **`frontend/src/main.jsx`** : Point d'entrée de l'application React.
-- **`frontend/src/assets/react.svg`** : Logo de React utilisé dans l'application.
+### Diagnostic et maintenance
 
-## Installation
+```bash
+make check       # Vérification complète de la configuration
+make start-mongo # Démarrage manuel de MongoDB
+make clean       # Nettoyage des fichiers temporaires
+```
 
-1. Clonez le dépôt.
-2. Installez les dépendances pour le backend :
-   ```
-   cd backend
-   npm install
-   ```
-3. Installez les dépendances pour le frontend :
-   ```
-   cd frontend
-   npm install
-   ```
-4. Configurez votre base de données MongoDB et mettez à jour le fichier `.env` avec l'URL de connexion.
-5. Démarrez le serveur backend :
-   ```
-   cd backend
-   node server.js
-   ```
-6. Démarrez le frontend :
-   ```
-   cd frontend
-   npm run dev
-   ```
+### Docker
 
-## Utilisation
+```bash
+make docker-build  # Construction de l'image
+make docker-up     # Lancement avec Docker Compose
+```
 
-Accédez à l'application via `http://localhost:5173` pour le frontend et `http://localhost:5000` pour le backend. Vous pouvez ajouter, afficher et supprimer des rendez-vous à partir de l'interface utilisateur.
+## 🔍 Dépannage
+
+### Problèmes courants
+
+1. **Erreur MongoDB** : `make start-mongo` puis `make check`
+2. **Fichier .env manquant** : `make setup-env`
+3. **Mot de passe admin perdu** : `make admin-pwd`
+4. **Dépendances manquantes** : `make install`
+
+### Installation MongoDB sur Debian/Ubuntu
+
+```bash
+# Importez la clé GPG MongoDB
+curl -fsSL https://www.mongodb.org/static/pgp/server-7.0.asc | \
+sudo gpg -o /usr/share/keyrings/mongodb-server-7.0.gpg --dearmor
+
+# Ajoutez le dépôt
+echo "deb [ arch=amd64,arm64 signed-by=/usr/share/keyrings/mongodb-server-7.0.gpg ] https://repo.mongodb.org/apt/ubuntu jammy/mongodb-org/7.0 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-7.0.list
+
+# Installez
+sudo apt update && sudo apt install -y mongodb-org
+
+# Démarrez
+sudo systemctl start mongod && sudo systemctl enable mongod
+```
+
+### Diagnostic automatique
+
+```bash
+make check  # Vérifie automatiquement :
+```
+- ✅ Node.js, npm, MongoDB, Docker
+- ✅ Fichier `.env` présent et valide  
+- ✅ Connexion MongoDB active
+- ✅ Dépendances installées
+
+## ✅ Statut de fonctionnement
+
+Si vous voyez ces messages, tout fonctionne correctement :
+- `✅ Toutes les vérifications sont passées !`
+- `🚀 Lancement en mode développement...`
+- `📦 Installation des dépendances terminée`
+- `🔑 Mot de passe administrateur généré`
+
+## 📸 Aperçu de l'application
+
+### Page d'accueil - Agenda hebdomadaire
+![Page d'accueil](ecrans/Canicoif-Accueil.png)
+
+Interface principale avec vue agenda claire des rendez-vous planifiés et navigation intuitive.
+
+### Gestion des rendez-vous
+![Rendez-vous](ecrans/Canicoif-RDV.png)
+
+Interface de création/modification des appointments avec sélection de créneaux et association client-animal.
+
+### Fiche client complète
+![Fiche client](ecrans/Canicoif-ficheClient.png)
+
+Vue centralisée des informations client, historique des visites et liste des animaux.
+
+### Recherche de clients
+![Recherche client](ecrans/Canicoif-RechercheClient.png)
+
+Fonction de recherche rapide avec critères multiples et identification instantanée.
+
+### Recherche d'animaux
+![Recherche animal](ecrans/Canicoif-RechercheAnimal.png)
+
+Localisation rapide d'animaux avec accès direct aux informations et historique.
