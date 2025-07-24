@@ -26,6 +26,7 @@ flowchart TD
     end
 
     A --> B1
+    A --> C1
     B1 --> B2
     B1 --> B3
     B1 --> C1
@@ -38,9 +39,9 @@ flowchart TD
     C1 --> D4
 
     %% Styles
-    classDef frontend fill:#e1f5fe,stroke:#0277bd,stroke-width:2px;
-    classDef backend fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px;
-    classDef features fill:#e8f5e8,stroke:#2e7d32,stroke-width:2px;
+    classDef frontend fill,stroke:#0277bd,stroke-width:2px;
+    classDef backend fill,stroke:#7b1fa2,stroke-width:2px;
+    classDef features fill,stroke:#2e7d32,stroke-width:2px;
     
     class C1,C2,C3,C4 frontend;
     class B1,B2,B3 backend;
