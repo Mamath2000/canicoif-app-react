@@ -1,4 +1,4 @@
-// RDV par mois sur 2 ans (année courante + précédente)
+// Paramètres globaux de l'application
 const express = require('express');
 const GlobalSettings = require('../models/GlobalSettings');
 const { isAdmin } = require('./login');

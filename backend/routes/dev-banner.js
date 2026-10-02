@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 
-// GET /api/test-banner
+// GET /api/banner
 router.get('/', (req, res) => {
   res.json({ testBanner: process.env.TEST_BANNER === 'true' });
 });

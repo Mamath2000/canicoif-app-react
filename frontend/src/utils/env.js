@@ -12,14 +12,10 @@ export async function isTestBannerEnabled() {
   }
 }
 
-// Version et ref de build (injectées au build par Vite)
+// Version et ref git de build (injectées au build par Vite : package.json et VITE_GIT_REF)
 export function getAppVersion() {
   return {
     version: import.meta.env.VITE_VERSION || 'dev',
+    gitRef: import.meta.env.VITE_GIT_REF || '',
   };
-}
-
-// Vérifie si le bouton statistiques doit être affiché
-export function isStatsButtonEnabled() {
-  return import.meta.env.VITE_SHOW_STATS_BUTTON === 'true';
 }

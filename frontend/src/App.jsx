@@ -10,7 +10,7 @@ import Button from '@mui/material/Button';
 import AppointmentEditModal from './components/AppointmentEditModal';
 import AnimalModal from './components/AnimalModal';
 import { getWeekDates } from "./utils/dateUtils";
-import { isTestBannerEnabled, getAppVersion, isStatsButtonEnabled } from "./utils/env";
+import { isTestBannerEnabled, getAppVersion } from "./utils/env";
 import LoginModal from "./components/LoginModal";
 
 // Chargés à l'ouverture seulement (chart.js, gestion des utilisateurs) : bundle initial plus léger
@@ -22,7 +22,6 @@ import { useAppointmentModal } from "./hooks/useAppointmentModal";
 import { useAppointments } from './hooks/useAppointments';
 import { useAnimaux } from "./hooks/useAnimaux";
 import { useSettings } from "./components/settings/hooks/useSettings";
-import dayjs from "dayjs";
 
 import React from 'react';
 
@@ -32,7 +31,7 @@ class ErrorBoundary extends React.Component {
     this.state = { hasError: false };
   }
 
-  static getDerivedStateFromError(error) {
+  static getDerivedStateFromError() {
     return { hasError: true };
   }
 
@@ -168,50 +167,29 @@ function App() {
     localStorage.setItem('jwt_id', id);
   };
 
-  const handleLogout = () => {
+  // Vide la session (état + localStorage) ; utilisée par la déconnexion et par l'événement "logout"
+  // émis par l'intercepteur axios sur un 401/403
+  const clearSession = () => {
     setToken("");
     setUsername("");
     setRole("user");
     setReset(false);
     setUserId("");
-    localStorage.removeItem('jwt_token');
-    localStorage.removeItem('jwt_user');
-    localStorage.removeItem('jwt_role');
-    localStorage.removeItem('jwt_id');
+    ['jwt_token', 'jwt_user', 'jwt_role', 'jwt_id'].forEach((key) => localStorage.removeItem(key));
+  };
+
+  const handleLogout = () => {
+    clearSession();
     window.location.reload();
   };
 
   useEffect(() => {
-    const handleLogout = () => {
-      setToken("");
-      setUsername("");
-      setRole("user");
-      setReset(false);
-      setUserId("");
-    };
-
-    window.addEventListener("logout", handleLogout);
-
-    return () => {
-      window.removeEventListener("logout", handleLogout);
-    };
+    window.addEventListener("logout", clearSession);
+    return () => window.removeEventListener("logout", clearSession);
   }, []);
-
-  // // --- Intercepteur fetch pour ajouter le token JWT ---
-  // window._fetch = window._fetch || window.fetch;
-  // window.fetch = function (url, options = {}) {
-  //   const jwt = localStorage.getItem('jwt_token');
-  //   if (jwt && url.startsWith('/api/')) {
-  //     options.headers = options.headers || {};
-  //     options.headers['Authorization'] = 'Bearer ' + jwt;
-  //   }
-  //   return window._fetch(url, options);
-  // };
 
   // --- Render principal ---
   let content;
-  // Affichage de la page de gestion des utilisateurs pour les admins : bouton d'accès
-
   if (!token) {
     content = <LoginModal open={true} onLogin={handleLogin} />;
   } else if (reset) {

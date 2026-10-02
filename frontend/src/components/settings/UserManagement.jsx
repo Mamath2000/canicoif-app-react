@@ -41,17 +41,26 @@ export default function UserManagement() {
     fetchUsers();
   }, []);
 
+  // Les erreurs de l'API (ex. nom déjà pris) sont affichées au-dessus de la liste
   async function handleCreateUser(e) {
     e.preventDefault();
     setError('');
-    await createUser(newUser);
-    await fetchUsers();
+    try {
+      await createUser(newUser);
+      await fetchUsers();
+    } catch (err) {
+      setError(err.message);
+    }
   }
 
   async function handleFlagReset(id) {
     setError('');
-    await resetFlag(id);
-    await fetchUsers();
+    try {
+      await resetFlag(id);
+      await fetchUsers();
+    } catch (err) {
+      setError(err.message);
+    }
   }
 
   async function handleDeleteUser(id) {
@@ -61,8 +70,8 @@ export default function UserManagement() {
         try {
           await deleteUser(id);
           await fetchUsers();
-        } catch (error) {
-          setError('Erreur lors de la suppression de l\'utilisateur');
+        } catch (err) {
+          setError(err.message);
         } finally {
           setConfirmDialog({ open: false, onConfirm: null });
         }

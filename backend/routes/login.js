@@ -64,7 +64,7 @@ const authenticateResetJWT = verifyJWT({ allowReset: true });
 // Middleware admin (à placer après authenticateJWT / authenticateResetJWT)
 function isAdmin(req, res, next) {
   if (req.user && req.user.role === 'admin' && !req.user.reset) return next();
-  return res.status(403).json({ message: 'Accès refusé' });
+  return res.status(403).json({ error: 'Accès refusé' });
 }
 
 // Exporte les middlewares pour les utiliser ailleurs

@@ -12,3 +12,4 @@ backend/users.json
 ecrans
 *.md
 *.log
+backend/test

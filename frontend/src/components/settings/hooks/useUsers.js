@@ -39,10 +39,8 @@ export function useUsers() {
 
     const resetFlag = async (userId) => {
         try {
-            console.log('Resetting flag for user:', userId);
             const response = await axios.post(`/api/users/${userId}/flag-reset`);
-            console.log('Response from resetFlag:', response);
-            setResetInfo({ ...resetInfo, [userId]: response.data.tempPassword }); // Fixed variable name
+            setResetInfo({ ...resetInfo, [userId]: response.data.tempPassword });
             return response.data.tempPassword;
         } catch (error) {
             throw new Error(error.response?.data?.error || 'Erreur lors de la réinitialisation du mot de passe');

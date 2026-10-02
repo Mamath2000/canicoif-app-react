@@ -64,7 +64,7 @@ docker-up:
 	@if [ -f "./build-and-up.sh" ]; then \
 		chmod +x ./build-and-up.sh && ./build-and-up.sh; \
 	else \
-		docker-compose up --build; \
+		docker compose up --build; \
 	fi
 
 check:

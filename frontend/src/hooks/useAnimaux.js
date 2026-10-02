@@ -9,13 +9,7 @@ export function useAnimaux() {
   // Récupère la liste des animaux récents
   const fetchRecentsAnimaux = async () => {
     const res = await axios.get('/api/animaux?recents=true');
-    // Si l'API retourne { animaux: [...] }
-    const animauxArray = Array.isArray(res.data)
-      ? res.data
-      : Array.isArray(res.data?.animaux)
-        ? res.data.animaux
-        : [];
-    setAnimaux(animauxArray);
+    setAnimaux(Array.isArray(res.data) ? res.data : []);
   };
 
 const searchAnimaux = async (filters) => {
@@ -26,13 +20,8 @@ const searchAnimaux = async (filters) => {
       if (filters.race) params.race = filters.race;
       if (filters.exclureDecedes) params.exclureDecedes = true;
       if (filters.exclureClientsArchives) params.exclureClientsArchives = true;
-      const res = await axios.get('/api/animaux', { params }); 
-      const animauxArray = Array.isArray(res.data)
-      ? res.data
-      : Array.isArray(res.data?.animaux)
-        ? res.data.animaux
-        : [];
-      setAnimaux(animauxArray);
+      const res = await axios.get('/api/animaux', { params });
+      setAnimaux(Array.isArray(res.data) ? res.data : []);
     } catch {
       setAnimaux([]);
     }

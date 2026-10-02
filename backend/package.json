@@ -5,7 +5,8 @@
   "scripts": {
     "start": "node server.js",
     "dev": "nodemon server.js",
-    "serve": "npm install && node server.js"
+    "serve": "npm install && node server.js",
+    "test": "node --test test/*.test.js"
   },
   "devDependencies": {
     "nodemon": "^3.1.10"

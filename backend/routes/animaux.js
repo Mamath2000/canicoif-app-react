@@ -31,7 +31,7 @@ router.get("/", async (req, res) => {
 
     res.json(animaux.map(a => ({ ...a, client: a.clientId })));
   } catch (err) {
-    res.status(500).json({ message: "Erreur serveur" });
+    res.status(500).json({ error: "Erreur serveur" });
   }
 });
 
@@ -39,7 +39,7 @@ router.get("/", async (req, res) => {
 router.get("/:animalId", async (req, res) => {
   try {
     const animal = await Animal.findById(req.params.animalId).populate("clientId", "nom prenom");
-    if (!animal) return res.status(404).json({ message: "Animal non trouvé" });
+    if (!animal) return res.status(404).json({ error: "Animal non trouvé" });
     const animalObj = animal.toObject();
 
     // Si le flag withClient=true est présent, on ajoute le client complet
@@ -58,7 +58,7 @@ router.get("/:animalId", async (req, res) => {
 
     res.json(animalObj);
   } catch (err) {
-    res.status(500).json({ message: "Erreur lors de la récupération de l'animal" });
+    res.status(500).json({ error: "Erreur lors de la récupération de l'animal" });
   }
 });
 
@@ -68,14 +68,14 @@ router.post("/", async (req, res) => {
     // Vérification existence client
     const client = await Client.findById(req.body.clientId);
     if (!client) {
-      return res.status(400).json({ message: "Client inexistant" });
+      return res.status(400).json({ error: "Client inexistant" });
     }
     const animal = new Animal(req.body);
     await animal.save();
     const animalPop = await Animal.findById(animal._id).populate("clientId", "nom prenom");
     res.status(201).json({ ...animalPop.toObject(), client: animalPop.clientId });
   } catch (err) {
-    res.status(400).json({ message: "Erreur lors de la création de l'animal" });
+    res.status(400).json({ error: "Erreur lors de la création de l'animal" });
   }
 });
 
@@ -86,14 +86,14 @@ router.put("/:animalId", async (req, res) => {
     if (req.body.clientId) {
       const client = await Client.findById(req.body.clientId);
       if (!client) {
-        return res.status(400).json({ message: "Client inexistant" });
+        return res.status(400).json({ error: "Client inexistant" });
       }
     }
     const animal = await Animal.findByIdAndUpdate(req.params.animalId, req.body, { new: true }).populate("clientId", "nom prenom");
-    if (!animal) return res.status(404).json({ message: "Animal non trouvé" });
+    if (!animal) return res.status(404).json({ error: "Animal non trouvé" });
     res.json({ ...animal.toObject(), client: animal.clientId });
   } catch (err) {
-    res.status(400).json({ message: "Erreur lors de la mise à jour de l'animal" });
+    res.status(400).json({ error: "Erreur lors de la mise à jour de l'animal" });
   }
 });
 
@@ -101,10 +101,10 @@ router.put("/:animalId", async (req, res) => {
 router.delete("/:animalId", async (req, res) => {
   try {
     const animal = await Animal.findByIdAndDelete(req.params.animalId);
-    if (!animal) return res.status(404).json({ message: "Animal non trouvé" });
+    if (!animal) return res.status(404).json({ error: "Animal non trouvé" });
     res.json({ success: true });
   } catch (err) {
-    res.status(500).json({ message: "Erreur lors de la suppression de l'animal" });
+    res.status(500).json({ error: "Erreur lors de la suppression de l'animal" });
   }
 });
 
@@ -132,7 +132,7 @@ router.get("/:animalId/appointments", async (req, res) => {
       totalPages: Math.ceil(total / limit)
     });
   } catch (err) {
-    res.status(500).json({ message: "Erreur lors de la récupération des rendez-vous" });
+    res.status(500).json({ error: "Erreur lors de la récupération des rendez-vous" });
   }
 });
 

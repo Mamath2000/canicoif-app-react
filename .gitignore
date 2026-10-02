@@ -45,3 +45,5 @@ coverage/
 # Ignore local database files (si tu en utilises)
 *.sqlite
 *.db
+# Secrets du déploiement docker compose
+canicoif.env
