@@ -10,6 +10,7 @@ services:
       - "8000:8000"
     environment:
       - MONGO_URI=mongodb://mongo:27017/canicoif
+      - JWT_SECRET=${JWT_SECRET:-}   # requis : l'app refuse de démarrer sans (openssl rand -hex 32)
       - ANIMAUX_LIMIT=18
       - CLIENTS_LIMIT=18
       # - TEST_BANNER=false

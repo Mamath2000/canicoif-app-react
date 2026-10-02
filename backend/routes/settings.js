@@ -1,6 +1,7 @@
 // RDV par mois sur 2 ans (année courante + précédente)
 const express = require('express');
 const GlobalSettings = require('../models/GlobalSettings');
+const { isAdmin } = require('./login');
 const router = express.Router();
 
 // Route pour gérer les paramètres globaux
@@ -13,7 +14,7 @@ router.get('/', async (req, res) => {
   }
 });
 
-router.post('/', async (req, res) => {
+router.post('/', isAdmin, async (req, res) => {
   try {
     const { showStatsFlag } = req.body;
 

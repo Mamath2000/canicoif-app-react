@@ -4,6 +4,11 @@ const cors = require('cors');
 const path = require('path');
 require('dotenv').config();
 
+if (!process.env.JWT_SECRET) {
+  console.error('JWT_SECRET manquant : définissez-le dans l\'environnement (ex. `openssl rand -hex 32`). Arrêt.');
+  process.exit(1);
+}
+
 const app = express();
 
 // Middlewares globaux
@@ -15,7 +20,7 @@ mongoose.connect(process.env.MONGO_URI);
 
 // Auth middleware JWT (protège toutes les routes sauf /api/utils/login et /api/utils/test-banner)
 const loginRouter = require('./routes/login');
-const authenticateJWT = loginRouter.authenticateJWT;
+const { authenticateJWT, authenticateResetJWT } = loginRouter;
 
 // Routes API protégées par JWT
 app.use('/api/banner', authenticateJWT, require('./routes/dev-banner'));
@@ -26,8 +31,8 @@ app.use('/api/animaux', authenticateJWT, require('./routes/animaux'));
 
 // Statistiques (tous users connectés)
 app.use('/api/stats', authenticateJWT, require('./routes/stats'));
-// Gestion des utilisateurs (admin seulement)
-app.use('/api/users', authenticateJWT, require('./routes/users'));
+// Gestion des utilisateurs (admin seulement, sauf reset-password qui accepte le token de réinitialisation)
+app.use('/api/users', authenticateResetJWT, require('./routes/users'));
 app.use('/api/login', require('./routes/login'));
 
 // Ajout de la route pour les paramètres globaux

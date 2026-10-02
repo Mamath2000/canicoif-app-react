@@ -1,13 +1,8 @@
 const express = require('express');
 const bcrypt = require('bcrypt');
 const User = require('../models/User');
+const { isAdmin } = require('./login');
 const router = express.Router();
-
-// Middleware d'authentification admin (à compléter selon votre logique d'auth)
-function isAdmin(req, res, next) {
-    if (req.user && req.user.role === 'admin') return next();
-    return res.status(403).json({ message: 'Accès refusé' });
-}
 
 // Liste des utilisateurs
 router.get('/', isAdmin, async (req, res) => {

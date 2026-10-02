@@ -62,12 +62,12 @@ function App() {
 
   // Affichage asynchrone de la bannière de test (optionnel)
   useEffect(() => {
-    if (!token) return;
+    if (!token || reset) return;
     (async () => {
       const enabled = await isTestBannerEnabled();
       setShowTestBanner(enabled);
     })();
-  }, [token]);
+  }, [token, reset]);
 
   const {
     getSettings,
@@ -95,7 +95,7 @@ function App() {
   } = useAppointments();
 
   const refreshApp = async () => {
-    if (token && selectedDate) {
+    if (token && !reset && selectedDate) {
       await fetchAppointments(selectedDate);
       await fetchRecentsAnimaux();
     }
@@ -128,18 +128,19 @@ function App() {
   };
 
   // --- Récupération des données ---
+  // Pas d'appel API avec un token de réinitialisation (refusé par le backend)
   useEffect(() => {
-    if (token) fetchSettings();
-  }, [token]);
+    if (token && !reset) fetchSettings();
+  }, [token, reset]);
 
   useEffect(() => {
-    if (token && selectedDate) {
+    if (token && !reset && selectedDate) {
       const weekDates = getWeekDates(selectedDate);
       const monday = new Date(weekDates[0]);
       fetchAppointments(monday);
       refreshApp();
     }
-  }, [selectedDate, token]);
+  }, [selectedDate, token, reset]);
 
   const handleMiniCalendarChange = (date) => {
     if (!selectedDate || date.getTime() !== selectedDate.getTime()) {

@@ -1,0 +1,14 @@
+# Build context of the Docker image: only what the Dockerfile needs
+node_modules
+**/node_modules
+frontend/dist
+.env
+**/.env
+**/.env.*
+backend/users.json
+.git
+.gitignore
+.vscode
+ecrans
+*.md
+*.log
