@@ -1,8 +1,6 @@
-import { useEffect, useState } from 'react';
+import { lazy, Suspense, useEffect, useState } from 'react';
 import AgendaSemaine from "./components/AgendaSemaine";
-import SettingsDialog from "./components/SettingsDialog";
 import PasswordResetModal from "./components/PasswordResetModal";
-import StatsDialog from "./components/StatsDialog";
 import ClientSearchModal from "./components/ClientSearchModal";
 import AnimalSearchModal from "./components/AnimalSearchModal";
 import Calendar from "react-calendar";
@@ -14,6 +12,10 @@ import AnimalModal from './components/AnimalModal';
 import { getWeekDates } from "./utils/dateUtils";
 import { isTestBannerEnabled, getAppVersion, isStatsButtonEnabled } from "./utils/env";
 import LoginModal from "./components/LoginModal";
+
+// Chargés à l'ouverture seulement (chart.js, gestion des utilisateurs) : bundle initial plus léger
+const StatsDialog = lazy(() => import("./components/StatsDialog"));
+const SettingsDialog = lazy(() => import("./components/SettingsDialog"));
 
 import { useAnimalModal } from "./hooks/useAnimalModal";
 import { useAppointmentModal } from "./hooks/useAppointmentModal";
@@ -96,8 +98,7 @@ function App() {
 
   const refreshApp = async () => {
     if (token && !reset && selectedDate) {
-      await fetchAppointments(selectedDate);
-      await fetchRecentsAnimaux();
+      await Promise.all([fetchAppointments(selectedDate), fetchRecentsAnimaux()]);
     }
   };
 
@@ -133,14 +134,15 @@ function App() {
     if (token && !reset) fetchSettings();
   }, [token, reset]);
 
+  // Changement de semaine : seulement les RDV (fetchAppointments calcule la semaine de la date)
   useEffect(() => {
-    if (token && !reset && selectedDate) {
-      const weekDates = getWeekDates(selectedDate);
-      const monday = new Date(weekDates[0]);
-      fetchAppointments(monday);
-      refreshApp();
-    }
+    if (token && !reset && selectedDate) fetchAppointments(selectedDate);
   }, [selectedDate, token, reset]);
+
+  // Animaux récents : à la connexion, puis après chaque enregistrement (refreshApp)
+  useEffect(() => {
+    if (token && !reset) fetchRecentsAnimaux();
+  }, [token, reset]);
 
   const handleMiniCalendarChange = (date) => {
     if (!selectedDate || date.getTime() !== selectedDate.getTime()) {
@@ -281,14 +283,20 @@ function App() {
           </div>
         </div>
 
-        <StatsDialog
-          open={showStatsDialog}
-          onClose={() => setShowStatsDialog(false)}
-        />
-        <SettingsDialog
-          open={showSettingsDialog && role === 'admin'}
-          onClose={handleCloseSettingsDialog}
-        />
+        <Suspense fallback={null}>
+          {showStatsDialog && (
+            <StatsDialog
+              open
+              onClose={() => setShowStatsDialog(false)}
+            />
+          )}
+          {showSettingsDialog && role === 'admin' && (
+            <SettingsDialog
+              open
+              onClose={handleCloseSettingsDialog}
+            />
+          )}
+        </Suspense>
         <div style={{ display: "flex", height: "calc(100vh - 4rem)" }}>
           {/* Colonne gauche : calendrier et boutons */}
           <div style={{

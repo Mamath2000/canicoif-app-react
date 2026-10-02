@@ -15,7 +15,7 @@ router.get('/', async (req, res) => {
       query.start = { $gte: startDate, $lt: endDate };
     }
 
-    const appointments = await Appointment.find(query);
+    const appointments = await Appointment.find(query).lean();
 
     // On récupère tous les animaux concernés en une seule requête
     const animalIds = appointments.map(a => a.animalId).filter(Boolean);
@@ -27,7 +27,7 @@ router.get('/', async (req, res) => {
     const result = appointments.map(a => {
       const animal = animauxById[a.animalId?.toString()];
       return {
-        ...a.toObject(),
+        ...a,
         animal: animal,
         comportement: animal?.comportement || ""
       };

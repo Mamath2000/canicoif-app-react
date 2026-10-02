@@ -15,4 +15,9 @@ const AnimalSchema = new Schema({
   clientId: { type: Schema.Types.ObjectId, ref: 'Client', required: true }
 }, { timestamps: true });
 
+// Index : animaux d'un client, liste des récents, tri par nom
+AnimalSchema.index({ clientId: 1 });
+AnimalSchema.index({ updatedAt: -1 });
+AnimalSchema.index({ nom: 1 });
+
 module.exports = mongoose.model('Animal', AnimalSchema);

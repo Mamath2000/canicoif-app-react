@@ -1,6 +1,7 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
+const compression = require('compression');
 const path = require('path');
 require('dotenv').config();
 
@@ -12,6 +13,7 @@ if (!process.env.JWT_SECRET) {
 const app = express();
 
 // Middlewares globaux
+app.use(compression());
 app.use(cors());
 app.use(express.json());
 
@@ -43,7 +45,16 @@ app.use('/api/settings', authenticateJWT, require('./routes/settings'));
 
 // 📁 Serve fichiers statiques frontend (Vite)
 const frontendPath = path.join(__dirname, '../frontend/dist');
-app.use(express.static(frontendPath));
+// Fichiers de build versionnés (/assets, nom avec hash) : cache long ; index.html jamais en cache
+app.use(express.static(frontendPath, {
+  setHeaders(res, filePath) {
+    if (filePath.includes(`${path.sep}assets${path.sep}`)) {
+      res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+    } else if (filePath.endsWith('.html')) {
+      res.setHeader('Cache-Control', 'no-cache');
+    }
+  },
+}));
 
 // ⚠️ Catch-all propre qui évite les conflits avec les API
 // Fallback pour routes non-API (à faire après toutes les routes API)
@@ -52,6 +63,7 @@ app.use((req, res, next) => {
     return res.status(404).json({ message: 'API introuvable' });
   }
 
+  res.setHeader('Cache-Control', 'no-cache');
   res.sendFile(path.join(frontendPath, 'index.html'));
 });
 

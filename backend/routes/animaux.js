@@ -17,31 +17,19 @@ router.get("/", async (req, res) => {
     if (exclureDecedes === "true" || exclureDecedes === true) query.decede = false;
     if (clientId) query.clientId = clientId;
 
-    let findQuery = Animal.find(query).populate("clientId", "nom prenom archive");
-
-    // On ne limite pas tout de suite si on doit filtrer les clients archivés
-    let animaux = await findQuery.sort(recents === "true" || recents === true ? { updatedAt: -1 } : { nom: 1 });
-
-    // Filtrer les animaux dont le client est archivé si demandé
+    // Clients archivés exclus directement dans la requête (filtre, tri et limite côté Mongo)
     if (exclureClientsArchives === "true" || exclureClientsArchives === true) {
-      animaux = animaux.filter(a => a.clientId && a.clientId.archive !== true);
+      const archives = await Client.find({ archive: true }).distinct("_id");
+      query.clientId = { ...(clientId ? { $eq: clientId } : { $ne: null }), $nin: archives };
     }
 
-    // Appliquer la limite APRÈS le filtrage
-    if (Array.isArray(animaux) && animaux.length > ANIMAUX_LIMIT) {
-      animaux = animaux.slice(0, ANIMAUX_LIMIT);
-    }
+    const animaux = await Animal.find(query)
+      .sort(recents === "true" || recents === true ? { updatedAt: -1 } : { nom: 1 })
+      .limit(ANIMAUX_LIMIT)
+      .populate("clientId", "nom prenom archive")
+      .lean();
 
-    const animauxWithClient = Array.isArray(animaux)
-      ? animaux
-        .filter(a => a && typeof a.toObject === 'function') // filtre les entrées invalides
-        .map(a => ({
-          ...a.toObject(),
-          client: a.clientId
-        }))
-      : [];
-
-    res.json(animauxWithClient);
+    res.json(animaux.map(a => ({ ...a, client: a.clientId })));
   } catch (err) {
     res.status(500).json({ message: "Erreur serveur" });
   }

@@ -15,4 +15,7 @@ const ClientSchema = new mongoose.Schema({
   archive: { type: Boolean, default: false } // <-- Ajout du flag archive
 }, { timestamps: true });
 
+// Index : tri / recherche par nom
+ClientSchema.index({ nom: 1 });
+
 module.exports = mongoose.model("Client", ClientSchema);

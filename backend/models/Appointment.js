@@ -11,4 +11,8 @@ const appointmentSchema = new Schema({
   highlight: { type: Boolean, default: false }
 }, { timestamps: true });
 
+// Index : agenda par période (et stats), historique d'un animal
+appointmentSchema.index({ start: 1 });
+appointmentSchema.index({ animalId: 1, start: -1 });
+
 module.exports = mongoose.model('Appointment', appointmentSchema);

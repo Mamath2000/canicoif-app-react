@@ -13,7 +13,7 @@ router.get("/", async (req, res) => {
 
   // 1. Si filtre animal, cherche les animaux correspondants et récupère leurs clientId
   if (req.query.animal) {
-    const animaux = await Animal.find({ nom: { $regex: req.query.animal, $options: "i" } }, "clientId");
+    const animaux = await Animal.find({ nom: { $regex: req.query.animal, $options: "i" } }, "clientId").lean();
     clientIdsFromAnimal = animaux.map(a => a.clientId);
     if (clientIdsFromAnimal.length === 0) {
       // Aucun animal trouvé, donc aucun client à retourner
@@ -39,7 +39,8 @@ router.get("/", async (req, res) => {
   try {
     const clients = await Client.find(query)
       .sort({ nom: 1 }) // Trie par nom de client (ordre alphabétique)
-      .limit(CLIENTS_LIMIT);
+      .limit(CLIENTS_LIMIT)
+      .lean();
 
     // Ajout : si withAnimaux=true, on ajoute les animaux à chaque client
     if (req.query.withAnimaux === "true") {
@@ -52,7 +53,7 @@ router.get("/", async (req, res) => {
         animauxByClient[cid].push(a);
       });
       const clientsWithAnimaux = clients.map(c => ({
-        ...c.toObject(),
+        ...c,
         animaux: animauxByClient[String(c._id)] || []
       }));
       return res.json(clientsWithAnimaux);
