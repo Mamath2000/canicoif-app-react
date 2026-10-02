@@ -28,7 +28,7 @@ export default function LoginModal({ open, onLogin }) {
       } else {
         onLogin(data.token, data.username, data.role || 'user', data.reset, data.id);
       }
-    } catch (e) {
+    } catch {
       setError("Erreur réseau");
     }
     setLoading(false);

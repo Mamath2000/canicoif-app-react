@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const Appointment = require('../models/Appointment');
 const Animal = require('../models/Animal'); // Assure-toi que c'est bien importé
+const { pick, APPOINTMENT_FIELDS } = require('../utils/pick');
 
 
 router.get('/', async (req, res) => {
@@ -87,9 +88,10 @@ router.put('/:id', async (req, res) => {
     if (!appointment) {
       return res.status(404).json({ error: "Rendez-vous non trouvé" });
     }
-    Object.keys(req.body).forEach(key => {
-      if (req.body[key] !== undefined) {
-        appointment[key] = req.body[key];
+    const updates = pick(req.body, APPOINTMENT_FIELDS);
+    Object.keys(updates).forEach(key => {
+      if (updates[key] !== undefined) {
+        appointment[key] = updates[key];
       }
     });
     await appointment.save();

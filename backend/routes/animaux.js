@@ -3,6 +3,7 @@ const router = express.Router();
 const Animal = require("../models/Animal");
 const Appointment = require("../models/Appointment");
 const Client = require("../models/Client"); // Ajout
+const { pick, ANIMAL_FIELDS } = require("../utils/pick");
 const ANIMAUX_LIMIT = parseInt(process.env.ANIMAUX_LIMIT, 10) || 15;
 
 
@@ -70,7 +71,7 @@ router.post("/", async (req, res) => {
     if (!client) {
       return res.status(400).json({ error: "Client inexistant" });
     }
-    const animal = new Animal(req.body);
+    const animal = new Animal(pick(req.body, ANIMAL_FIELDS));
     await animal.save();
     const animalPop = await Animal.findById(animal._id).populate("clientId", "nom prenom");
     res.status(201).json({ ...animalPop.toObject(), client: animalPop.clientId });
@@ -89,7 +90,7 @@ router.put("/:animalId", async (req, res) => {
         return res.status(400).json({ error: "Client inexistant" });
       }
     }
-    const animal = await Animal.findByIdAndUpdate(req.params.animalId, req.body, { new: true }).populate("clientId", "nom prenom");
+    const animal = await Animal.findByIdAndUpdate(req.params.animalId, pick(req.body, ANIMAL_FIELDS), { new: true }).populate("clientId", "nom prenom");
     if (!animal) return res.status(404).json({ error: "Animal non trouvé" });
     res.json({ ...animal.toObject(), client: animal.clientId });
   } catch (err) {

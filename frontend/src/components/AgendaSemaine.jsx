@@ -79,27 +79,6 @@ function AgendaSemaine({
 
 export default AgendaSemaine;
 
-function App() {
-  return (
-    <div
-      style={{
-        maxWidth: 600,
-        margin: "2rem auto",
-        fontFamily: "sans-serif",
-      }}
-    >
-      <div style={{ padding: "2rem", background: "#f0f0f0" }}>
-        <h1>Gestion des rendez-vous</h1>
-      </div>
-      <AgendaSemaine
-        appointments={appointments}
-        onSelectEvent={handleEditAppointment}
-        onEventDrop={onEventDrop} // <-- IMPORTANT !
-      />
-    </div>
-  );
-}
-
 const eventPropGetter = (event) => {
   // 1. Fond selon le type d'event
   let background;

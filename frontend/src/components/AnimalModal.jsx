@@ -49,8 +49,6 @@ export default function AnimalModal({
   }, [open, editAnimal]);
 
 const {
-    editAppointment,
-    setEditAppointment,
     saveAppointment,
   } = useAppointments();
 
@@ -108,11 +106,9 @@ const {
   const [appointmentEdits, setAppointmentEdits] = useState([]);
   const [appointmentsPage, setAppointmentsPage] = useState(1);
   const APPOINTMENTS_PER_PAGE = 6;
-  const [appointmentsTotal, setAppointmentsTotal] = useState(animalAppointments.length);
 
   useEffect(() => {
     setAppointmentsPage(1);
-    setAppointmentsTotal(animalAppointments.length);
   }, [animalAppointments, open]);
 
   // Pagination des rendez-vous

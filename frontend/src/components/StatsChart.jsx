@@ -31,7 +31,7 @@ class ErrorBoundary extends React.Component {
     this.state = { hasError: false };
   }
 
-  static getDerivedStateFromError(error) {
+  static getDerivedStateFromError() {
     return { hasError: true };
   }
 
@@ -64,7 +64,7 @@ export default function StatsChart({ endpoint, title, xLabel, yLabel }) {
     try {
       const res = await axios.get(endpoint);
       setData(res.data);
-    } catch (e) {
+    } catch {
       setError('Erreur lors du chargement des statistiques');
     }
     setLoading(false);

@@ -175,6 +175,27 @@ test('clients : recherche, archivés exclus par défaut, animaux joints', async 
   assert.equal(data[0].animaux.length, 8);
 });
 
+test('modifications : seuls les champs métier sont écrits', async () => {
+  const before = await Client.findById(fx.martin._id).lean();
+  const res = await call('PUT', `/api/clients/${fx.martin._id}`, {
+    token: fx.tUser,
+    body: { tel: '0102030405', createdAt: '2000-01-01T00:00:00.000Z', pirate: 'x' },
+  });
+  assert.equal(res.status, 200);
+  const after = await Client.findById(fx.martin._id).lean();
+  assert.equal(after.tel, '0102030405');
+  assert.equal(after.createdAt.getTime(), before.createdAt.getTime());
+  assert.ok(!('pirate' in after));
+
+  const rdv = await Appointment.findOne({ title: 'Indisponible' });
+  const fixedId = new mongoose.Types.ObjectId();
+  const upd = await call('PUT', `/api/appointments/${rdv._id}`, { token: fx.tUser, body: { comment: 'ok', _id: fixedId, createdAt: '2000-01-01' } });
+  assert.equal(upd.status, 200);
+  assert.equal(upd.data.comment, 'ok');
+  assert.equal(String(upd.data._id), String(rdv._id));
+  assert.notEqual(new Date(upd.data.createdAt).getFullYear(), 2000);
+});
+
 // --- Rendez-vous et statistiques ---
 
 test('rendez-vous de la semaine, avec le comportement de l\'animal', async () => {

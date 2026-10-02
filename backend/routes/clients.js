@@ -3,6 +3,7 @@ const router = express.Router();
 const Client = require('../models/Client');
 const Appointment = require('../models/Appointment'); // ou le nom de ton modèle
 const Animal = require('../models/Animal'); // à ajouter en haut
+const { pick, CLIENT_FIELDS } = require('../utils/pick');
 
 const CLIENTS_LIMIT = parseInt(process.env.CLIENTS_LIMIT, 10) || 15;
 
@@ -68,7 +69,7 @@ router.get("/", async (req, res) => {
 // Créer un client
 router.post("/", async (req, res) => {
   try {
-    const client = new Client(req.body);  
+    const client = new Client(pick(req.body, CLIENT_FIELDS));
     await client.save();
     res.status(201).json(client);
   } catch (err) {
@@ -114,7 +115,7 @@ router.get("/:id", async (req, res) => {
 // Modifier un client
 router.put("/:id", async (req, res) => {
   try {
-    const client = await Client.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    const client = await Client.findByIdAndUpdate(req.params.id, pick(req.body, CLIENT_FIELDS), { new: true });
     if (!client) return res.status(404).json({ error: "Client non trouvé" });
     res.json(client);
   } catch (err) {

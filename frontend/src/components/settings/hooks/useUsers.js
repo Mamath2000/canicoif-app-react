@@ -22,7 +22,7 @@ export function useUsers() {
                     setError('Réponse inattendue du serveur');
                 }
             }
-        } catch (error) {
+        } catch {
             setError('Erreur lors du chargement des utilisateurs');
             setUsers([]);
         }

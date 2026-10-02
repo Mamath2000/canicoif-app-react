@@ -1,14 +1,22 @@
 // Application Express (routes, middlewares, front) sans démarrage : utilisée par server.js et par les tests
 const express = require('express');
-const cors = require('cors');
+const helmet = require('helmet');
 const compression = require('compression');
 const path = require('path');
 
 const app = express();
 
-// Middlewares globaux
+// En-têtes de sécurité (CSP, nosniff, frame-ancestors…). Pas de CORS : l'API ne sert que le front de même origine.
+// - upgrade-insecure-requests désactivé : l'app est aussi utilisée en http sur le LAN (192.168.100.174:8000)
+// - HSTS désactivé : le TLS est géré par le reverse proxy (NPM)
+// - COOP et Origin-Agent-Cluster désactivés : ignorés en http par le navigateur (avertissements en console), sans apport ici
+app.use(helmet({
+  contentSecurityPolicy: { directives: { upgradeInsecureRequests: null } },
+  strictTransportSecurity: false,
+  crossOriginOpenerPolicy: false,
+  originAgentCluster: false,
+}));
 app.use(compression());
-app.use(cors());
 app.use(express.json());
 
 // Auth JWT : toutes les routes API sauf /api/login

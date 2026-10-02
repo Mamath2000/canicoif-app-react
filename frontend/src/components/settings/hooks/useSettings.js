@@ -6,14 +6,14 @@ const emptySettings = {
 };
 
 export function useSettings() {
-  const [allSettings, setAllSettings] = useState(emptySettings);
+  const [, setAllSettings] = useState(emptySettings);
 
   const fetchSettings = async () => {
     try {
       const res = await axios.get('/api/settings');
       setAllSettings(res.data);
       return res.data;
-    } catch (e) {
+    } catch {
       return {};
     }
   };

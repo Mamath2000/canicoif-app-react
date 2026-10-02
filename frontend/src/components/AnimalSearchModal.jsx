@@ -74,7 +74,6 @@ export default function AnimalSearchModal({ open, onClose, onAnimalSelected, sel
   const {
     editClient,
     showClientModal,
-    setShowClientModal,
     openModal: openClientModal,
     closeModal: closeClientModal,
     handleSaveClient,

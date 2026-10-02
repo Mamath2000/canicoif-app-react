@@ -37,7 +37,7 @@ export default function PasswordResetModal({ open, userId, onReset, onLogout, sk
         onReset();
         onLogout();
       }, 1500);
-    } catch (e) {
+    } catch {
       setError('Erreur lors de la réinitialisation.');
     }
     setLoading(false);
