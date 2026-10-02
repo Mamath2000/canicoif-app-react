@@ -17,11 +17,7 @@ services:
     # VITE_GIT_REF sera injecté dynamiquement au build
     depends_on:
       - mongo
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
+    # healthcheck : défini dans le Dockerfile (fetch Node, pas de curl dans l'image)
 
   mongo:
     container_name: mongo
