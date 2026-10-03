@@ -33,7 +33,7 @@ install:
 dev: check
 	@echo "🚀 Lancement en mode développement..."
 	@echo "Frontend: http://localhost:5173"
-	@echo "Backend: http://localhost:5000"
+	@echo "Backend: http://localhost:8000"
 	@echo "Appuyez sur Ctrl+C pour arrêter"
 	@echo ""
 	@(cd backend && npx nodemon server.js) & \
@@ -43,7 +43,7 @@ dev: check
 prod: check
 	@echo "🏗️ Build et lancement en mode production..."
 	@cd frontend && npm run build
-	@echo "Application: http://localhost:5000"
+	@echo "Application: http://localhost:8000"
 	@cd backend && npm start
 
 admin-pwd: check
@@ -111,7 +111,7 @@ setup-env:
 		echo "MONGO_URI=mongodb://localhost:27017/canicoif" > backend/.env; \
 		echo "JWT_SECRET=$$(openssl rand -base64 32)" >> backend/.env; \
 		echo "NODE_ENV=development" >> backend/.env; \
-		echo "PORT=5000" >> backend/.env; \
+		echo "PORT=8000" >> backend/.env; \
 		echo "✅ Fichier .env créé dans backend/"; \
 		echo "Modifiez MONGO_URI si nécessaire"; \
 	else \
