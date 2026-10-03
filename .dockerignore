@@ -9,7 +9,7 @@ backend/users.json
 .git
 .gitignore
 .vscode
-ecrans
+docs
 *.md
 *.log
 backend/test
